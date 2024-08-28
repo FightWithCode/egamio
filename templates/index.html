@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gaming Team Finder</title>
+    <style>
+        /* Basic Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            color: #ffffff;
+        }
+        .first-screen{
+            background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(0,0,0,0.5)), url('homeBg.png') no-repeat center center/cover;
+        }
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 16px;
+        }
+
+        .login-btn {
+            background-color: #7f00ff;
+            color: #ffffff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        /* Main Content */
+        .main-content {
+            text-align: center;
+            padding: 100px 20px;
+        }
+
+        .main-content h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .main-content p {
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .primary-btn, .secondary-btn {
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+        }
+
+        .primary-btn {
+            background-color: #7f00ff;
+            color: #ffffff;
+        }
+
+        .secondary-btn {
+            background-color: transparent;
+            color: #ffffff;
+            border: 2px solid #ffffff;
+        }
+
+        /* Grid Section */
+        .grid-section {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 40px 20px;
+        }
+
+        .grid-box {
+            width: 150px;
+            height: 150px;
+            border: 2px solid #00ff00;
+            background-color: transparent;
+        }
+        /* Popular Games Section */
+    .popular-games {
+        padding: 40px 20px;
+    }
+
+    .popular-games h2 {
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+
+    .game-grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+    }
+
+    .game-card {
+        width: 150px;
+        height: 80px;
+        background-color: #333333;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 10px;
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: bold;
+        text-align: center;
+    }
+
+    /* How it Works Section */
+    .how-it-works {
+        padding: 40px 20px;
+    }
+
+    .how-it-works h2 {
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+
+    .how-it-works-grid {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+    }
+
+    .info-box {
+        width: 200px;
+        height: 150px;
+        background-color: #1a1a1a;
+        border-radius: 10px;
+    }
+    </style>
+</head>
+<body>
+    <section class="first-screen">
+        <header class="header">
+            <div class="logo">LOGO</div>
+            <nav class="nav-links">
+                <a href="#">Find Teams</a>
+                <a href="#">Find Players</a>
+                <a href="#">About Us</a>
+                <a href="#">How It Works</a>
+            </nav>
+            <button class="login-btn">Log In</button>
+        </header>
+        <main class="main-content">
+            <h1>Connect with the Perfect Team or Player for Your Next Game!</h1>
+            <p>Join thousands of gamers and find your perfect match.</p>
+            <div class="buttons">
+                <button class="primary-btn">Find Players</button>
+                <button class="secondary-btn">Find a Team</button>
+            </div>
+        </main>
+        <section class="grid-section">
+            <div class="grid-box"></div>
+            <div class="grid-box"></div>
+            <div class="grid-box"></div>
+            <div class="grid-box"></div>
+        </section>
+    </section>
+    <section class="popular-games">
+        <h2>Explore Popular Games</h2>
+        <div class="game-grid">
+            <div class="game-card">FREE FIRE</div>
+            <div class="game-card">MOBILE LEGENDS</div>
+            <div class="game-card">STREET FIGHTER V</div>
+            <div class="game-card">STREET FIGHTER</div>
+            <div class="game-card">FORTNITE</div>
+            <div class="game-card">PUBG</div>
+            <div class="game-card">MAX PAYNE</div>
+            <div class="game-card">GTA VICE CITY</div>
+        </div>
+    </section>
+    <section class="how-it-works">
+        <h2>How it Works</h2>
+        <div class="how-it-works-grid">
+            <div class="info-box"></div>
+            <div class="info-box"></div>
+            <div class="info-box"></div>
+            <div class="info-box"></div>
+        </div>
+    </section>
+</body>
+</html>
