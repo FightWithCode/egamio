@@ -8,7 +8,7 @@ from django.utils import timezone
 from .managers import UserManager
 
 # model imports
-from echoepicbe.utils import TimeStamp
+from egamio.utils import TimeStamp
 
 
 class Role(models.Model):

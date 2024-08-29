@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 # models import
-from echoepicbe.utils import TimeStamp
+from egamio.utils import TimeStamp
 
 
 class Game(models.Model, TimeStamp):

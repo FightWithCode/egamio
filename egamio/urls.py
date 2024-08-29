@@ -1,5 +1,5 @@
 """
-URL configuration for echoepicbe project.
+URL configuration for egamio project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.1/topics/http/urls/

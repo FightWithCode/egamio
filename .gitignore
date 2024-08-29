@@ -10,7 +10,7 @@ accounts/migrations/*
 accounts/__pycache__/*
 games/migrations/*
 games/__pycache__/*
-echoepic/migrations/*
+egamio/migrations/*
 media_root/
 media_root/*
 media_root/qr_codes/*
