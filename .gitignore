@@ -8,6 +8,10 @@ node_modules/
 dist/
 accounts/migrations/*
 accounts/__pycache__/*
+finder/migrations/*
+finder/__pycache__/*
+games/migrations/*
+games/__pycache__/*
 games/migrations/*
 games/__pycache__/*
 egamio/migrations/*

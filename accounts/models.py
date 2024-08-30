@@ -1,59 +1,19 @@
+import uuid
 from django.db import models
 from django.core.mail import send_mail
 from django.contrib.auth.models import PermissionsMixin
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
+from django.conf import settings
 
 from .managers import UserManager
 
 # model imports
 from egamio.utils import TimeStamp
 
-
-class Role(models.Model):
-    """
-    Model representing a role.
-    """
-    name = models.CharField(_("role name"), max_length=150, unique=True)
-    game = models.ForeignKey(
-        'games.Game', 
-        on_delete=models.CASCADE, 
-        related_name='roles', 
-        verbose_name=_("game")
-    )
-    description = models.TextField(_("role description"), blank=True)
-
-    def __str__(self):
-        return self.name
-
-
-class Team(models.Model, TimeStamp):
-    """
-    A model representing a Team.
-    """
-    name = models.CharField(_("team name"), max_length=150, unique=True)
-    description = models.TextField(_("description"), blank=True)
-    logo = models.ImageField(_("logo"), upload_to='team_logos/', blank=True, null=True)
-    game = models.ForeignKey(
-        'games.Game', 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True, 
-        related_name='teams', 
-        verbose_name=_("game")
-    )
-    location = models.CharField(max_length=255, blank=True, null=True)
-    looking_for_players = models.IntegerField(default=0)
-    looking_for_roles = models.ManyToManyField(Role, related_name='looking_for_roles', blank=True)
-
-
-    class Meta:
-        verbose_name = _("team")
-        verbose_name_plural = _("teams")
-
-    def __str__(self):
-        return self.name
+def get_json_default():
+    return {}
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -65,15 +25,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     """
     name = models.CharField(_("first name"), max_length=150, blank=True)
     email = models.EmailField(_("email address"), unique=True)
-    game = models.ForeignKey(
-        'games.Game',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='users',
-        verbose_name=_("game")
-    )
-    roles = models.ManyToManyField(Role, related_name='users', blank=True)
     location = models.CharField(max_length=150, default=None, null=True, blank=True)
     is_staff = models.BooleanField(
         _("staff status"),
@@ -93,14 +44,6 @@ class User(AbstractBaseUser, PermissionsMixin):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-    team = models.ForeignKey(
-        Team,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='members',
-        verbose_name=_("team")
-    )
     objects = UserManager()
 
     EMAIL_FIELD = "email"
@@ -129,3 +72,70 @@ class User(AbstractBaseUser, PermissionsMixin):
         """Send an email to this user."""
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
+
+class Role(models.Model):
+    """
+    Model representing a role.
+    """
+    name = models.CharField(_("role name"), max_length=150, unique=True)
+    game = models.ForeignKey(
+        'games.Game', 
+        on_delete=models.CASCADE, 
+        related_name='roles', 
+        verbose_name=_("game")
+    )
+    description = models.TextField(_("role description"), blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Team(models.Model, TimeStamp):
+    """
+    A model representing a Team.
+    """
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    name = models.CharField(_("team name"), max_length=150, unique=True)
+    description = models.TextField(_("description"), blank=True)
+    logo = models.ImageField(_("logo"), upload_to='team_logos/', blank=True, null=True)
+    game = models.ForeignKey(
+        'games.Game', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='teams', 
+        verbose_name=_("game")
+    )
+    location = models.CharField(max_length=255, blank=True, null=True)
+    looking_for_players = models.IntegerField(default=0)
+    looking_for_roles = models.ManyToManyField(Role, related_name='looking_for_roles', blank=True)
+
+
+    class Meta:
+        verbose_name = _("team")
+        verbose_name_plural = _("teams")
+
+    def __str__(self):
+        return self.name
+
+
+class UserGameProfile(models.Model, TimeStamp):
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    ign = models.CharField(max_length=25)
+    game = models.ForeignKey('games.Game', on_delete=models.CASCADE)
+    roles = models.ManyToManyField(Role, related_name='game_roles', blank=True)
+    featured_image = models.ImageField(_("featured_image"), upload_to='user_game_profile/', blank=True, null=True)
+    game_data = models.JSONField(default=get_json_default)
+    preference_data = models.JSONField(default=get_json_default)
+
+    def __str__(self):
+        return f"Profile of {self.user.name} for game {self.game.name}"
+
+
+class UserShort(models.Model, TimeStamp):
+    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    video = models.FileField(upload_to='shorts/videos/')
+    title = models.CharField(max_length=100, blank=True, null=True)
+    description = models.TextField(blank=True, null=True)
