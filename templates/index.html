@@ -1,212 +1,303 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gaming Team Finder</title>
-    <style>
-        /* Basic Reset */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% extends 'base.html' %}
+{% load static %}
 
-        body {
-            font-family: Arial, sans-serif;
-            color: #ffffff;
-        }
-        .first-screen{
-            background: linear-gradient(135deg, rgba(0,0,0,0.8), rgba(0,0,0,0.5)), url('homeBg.png') no-repeat center center/cover;
-        }
-        /* Header */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-        }
+{% block title %}Home Page{% endblock %}
 
-        .logo {
-            font-size: 24px;
-            font-weight: bold;
-        }
+{% block custom_css %}
+    <link rel="stylesheet" href="{% static 'css/index.css' %}">
+{% endblock %}
 
-        .nav-links a {
-            color: #ffffff;
-            text-decoration: none;
-            margin: 0 15px;
-            font-size: 16px;
-        }
-
-        .login-btn {
-            background-color: #7f00ff;
-            color: #ffffff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        /* Main Content */
-        .main-content {
-            text-align: center;
-            padding: 100px 20px;
-        }
-
-        .main-content h1 {
-            font-size: 36px;
-            margin-bottom: 20px;
-        }
-
-        .main-content p {
-            font-size: 18px;
-            margin-bottom: 30px;
-        }
-
-        .buttons {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-        }
-
-        .primary-btn, .secondary-btn {
-            padding: 15px 30px;
-            border-radius: 25px;
-            font-size: 18px;
-            cursor: pointer;
-            border: none;
-        }
-
-        .primary-btn {
-            background-color: #7f00ff;
-            color: #ffffff;
-        }
-
-        .secondary-btn {
-            background-color: transparent;
-            color: #ffffff;
-            border: 2px solid #ffffff;
-        }
-
-        /* Grid Section */
-        .grid-section {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            padding: 40px 20px;
-        }
-
-        .grid-box {
-            width: 150px;
-            height: 150px;
-            border: 2px solid #00ff00;
-            background-color: transparent;
-        }
-        /* Popular Games Section */
-    .popular-games {
-        padding: 40px 20px;
-    }
-
-    .popular-games h2 {
-        font-size: 24px;
-        margin-bottom: 20px;
-    }
-
-    .game-grid {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 20px;
-    }
-
-    .game-card {
-        width: 150px;
-        height: 80px;
-        background-color: #333333;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border-radius: 10px;
-        color: #ffffff;
-        font-size: 14px;
-        font-weight: bold;
-        text-align: center;
-    }
-
-    /* How it Works Section */
-    .how-it-works {
-        padding: 40px 20px;
-    }
-
-    .how-it-works h2 {
-        font-size: 24px;
-        margin-bottom: 20px;
-    }
-
-    .how-it-works-grid {
-        display: flex;
-        justify-content: center;
-        gap: 20px;
-    }
-
-    .info-box {
-        width: 200px;
-        height: 150px;
-        background-color: #1a1a1a;
-        border-radius: 10px;
-    }
-    </style>
-</head>
-<body>
-    <section class="first-screen">
-        <header class="header">
-            <div class="logo">LOGO</div>
-            <nav class="nav-links">
-                <a href="#">Find Teams</a>
-                <a href="#">Find Players</a>
-                <a href="#">About Us</a>
-                <a href="#">How It Works</a>
-            </nav>
-            <button class="login-btn">Log In</button>
-        </header>
-        <main class="main-content">
-            <h1>Connect with the Perfect Team or Player for Your Next Game!</h1>
-            <p>Join thousands of gamers and find your perfect match.</p>
-            <div class="buttons">
-                <button class="primary-btn">Find Players</button>
-                <button class="secondary-btn">Find a Team</button>
+{% block body %}
+    <!--==============================
+    Hero Area
+    ==============================-->
+    <div class="hero-layout2">
+        <div class="row vs-carousel arrow-style3" data-arrows="true" data-dots="false" data-dots-lg-show="true" data-fade="true">
+            <div class="hero-inner">
+                <div class="hero-bg" data-bg-src='{% static "images/base/hero-img-2-1.jpg" %}'>
+                </div>
+                <div class="container">
+                    <div class="hero-content">
+                        <span class="hero-subtitle" >Solve Problems, Change Lives</span>
+                        <h1 class="hero-title">Pro Danger<br>Esports Team</h1>
+                        <p class="hero-text">Lorem ipsum dolor sit amet consectur adipiscing elit eiusmod</p>
+                        <div class="hero-btns">
+                            <a href="team.html" class="vs-btn outline1 me-3">meet our team<i class="far fa-arrow-right"></i></a>
+                            <a href="shop.html" class="vs-btn outline3"><i class="fal fa-shopping-cart"></i>Merch shop</a>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </main>
-        <section class="grid-section">
-            <div class="grid-box"></div>
-            <div class="grid-box"></div>
-            <div class="grid-box"></div>
-            <div class="grid-box"></div>
-        </section>
-    </section>
-    <section class="popular-games">
-        <h2>Explore Popular Games</h2>
-        <div class="game-grid">
-            <div class="game-card">FREE FIRE</div>
-            <div class="game-card">MOBILE LEGENDS</div>
-            <div class="game-card">STREET FIGHTER V</div>
-            <div class="game-card">STREET FIGHTER</div>
-            <div class="game-card">FORTNITE</div>
-            <div class="game-card">PUBG</div>
-            <div class="game-card">MAX PAYNE</div>
-            <div class="game-card">GTA VICE CITY</div>
+        </div>
+    </div>
+    <!--==============================
+    Time Table
+    ==============================-->
+    <section class="vs-timetable-wrapper vs-timetable-layout1 space" data-bg-src='{% static "images/bg/timetable-bg-1.jpg" %}'>
+        <div class="container pb-35">
+            <div class="row">
+                <div class="col-md-5 col-lg-6 col-xl-6">
+                    <div class="section-title has-title-rotate">
+                        <span class="title-rotate">#schedule</span>
+                        <h2 class="sec-title1 text-white">STREAM TIMETABLE</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center text-xl-end">
+                <div class="timetable-style1">
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="tournament.html" class="timetable-box">
+                            <p class="day mb-0">Monday</p>
+                            <p class="name mb-0">Not Streaming</p>
+                        </a>
+                        <a href="tournament.html" class="timetable-box">
+                            <p class="time mb-0">2:00 AM - 9:00 AM cet</p>
+                            <p class="day mb-0">Tuesday</p>
+                            <p class="name mb-0">Call of duty</p>
+                        </a>
+                    </div>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="tournament.html" class="timetable-box">
+                            <p class="day mb-0">Wednesday</p>
+                            <p class="name mb-0">Not Streaming</p>
+                        </a>
+                        <a href="tournament.html" class="timetable-box">
+                            <p class="time mb-0">2:00 AM - 9:00 AM cet</p>
+                            <p class="day mb-0">Thursday</p>
+                            <p class="name mb-0">Call of duty</p>
+                        </a>
+                        <a href="tournament.html" class="timetable-box active">
+                            <p class="time mb-0">2:00 AM - 9:00 AM cet</p>
+                            <p class="day mb-0">Friday</p>
+                            <p class="name mb-0">Call of duty</p>
+                        </a>
+                        <a href="tournament.html" class="timetable-box">
+                            <p class="time mb-0">2:00 AM - 9:00 AM cet</p>
+                            <p class="day mb-0">Saturday</p>
+                            <p class="name mb-0">Call of duty</p>
+                        </a>
+                    </div>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="tournament.html" class="timetable-box">
+                            <p class="time mb-0">2:00 AM - 9:00 AM cet</p>
+                            <p class="day mb-0">Sunday</p>
+                            <p class="name mb-0">Call of duty</p>
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
-    <section class="how-it-works">
-        <h2>How it Works</h2>
-        <div class="how-it-works-grid">
-            <div class="info-box"></div>
-            <div class="info-box"></div>
-            <div class="info-box"></div>
-            <div class="info-box"></div>
+    <!--==============================
+    Streams Area
+    ==============================-->
+    <section class="vs-streams-wrapper bg-secondary space-bottom">
+        <div class="container">
+            <div class="space-top">
+                <div class="row justify-content-center">
+                    <div class="col-xl-6 col-lg-7 col-md-8">
+                        <div class="section-title text-center">
+                            <span class="sub-title">#schedule</span>
+                            <h2 class="sec-title1 text-center">WATCH MY STREAMS</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center">
+                    <div class="filter-menu-style1 mb-40 vs-slider-tab redwan" data-asnavfor="#slideStrem">
+                        <a href="#" class="tab-btn active" data-slide="0">csgo </a>
+                        <a href="#" class="tab-btn" data-slide="1">Benila </a>
+                        <a href="#" class="tab-btn" data-slide="2">dota 2</a>
+                        <a href="#" class="tab-btn" data-slide="3">fortnite</a>
+                        <a href="#" class="tab-btn" data-slide="4">pubg</a>
+                    </div>
+                    <div class="position-relative arrow-wrap">
+                        <div id="slideStrem" class="strem-video1 vs-carousel arrow-white" data-slide-show="1" data-arrows="true" data-speed="500" data-infinite="fasle">
+                            <div class="position-relative image-scale-hover">
+                                <a class="popup-video" href="https://www.youtube.com/watch?v=_sI_Ps7JSEk"><img class="w-100" src="{% static "images/video/video-img-2-1.jpg" %}" alt="Video Thumb"></a>
+                                <a class="popup-video play-btn overlay-center" href="https://www.youtube.com/watch?v=_sI_Ps7JSEk"><i class="fas fa-play"></i></a>
+                            </div>
+                            <div class="position-relative image-scale-hover">
+                                <a class="popup-video" href="https://www.youtube.com/watch?v=_sI_Ps7JSEk"><img class="w-100" src="{% static "images/video/video-img-2-2.jpg" %}" alt="Video Thumb"></a>
+                                <a class="popup-video play-btn overlay-center" href="https://www.youtube.com/watch?v=_sI_Ps7JSEk"><i class="fas fa-play"></i></a>
+                            </div>
+                            <div class="position-relative image-scale-hover">
+                                <a class="popup-video" href="https://www.youtube.com/watch?v=_sI_Ps7JSEk"><img class="w-100" src="{% static "images/video/video-img-2-3.jpg" %}" alt="Video Thumb"></a>
+                                <a class="popup-video play-btn overlay-center" href="https://www.youtube.com/watch?v=_sI_Ps7JSEk"><i class="fas fa-play"></i></a>
+                            </div>
+                            <div class="position-relative image-scale-hover">
+                                <a class="popup-video" href="https://www.youtube.com/watch?v=_sI_Ps7JSEk"><img class="w-100" src="{% static "images/video/video-img-2-4.jpg" %}" alt="Video Thumb"></a>
+                                <a class="popup-video play-btn overlay-center" href="https://www.youtube.com/watch?v=_sI_Ps7JSEk"><i class="fas fa-play"></i></a>
+                            </div>
+                            <div class="position-relative image-scale-hover">
+                                <a class="popup-video" href="https://www.youtube.com/watch?v=_sI_Ps7JSEk"><img class="w-100" src="{% static "images/video/video-img-2-5.jpg" %}" alt="Video Thumb"></a>
+                                <a class="popup-video play-btn overlay-center" href="https://www.youtube.com/watch?v=_sI_Ps7JSEk"><i class="fas fa-play"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
-</body>
-</html>
+    <!--==============================
+    Contact Form Area
+    ==============================-->
+    <section class="vs-contact-wrapper bg-light-dark space">
+        <div class="container">
+            <div class="row gx-60">
+                <div class="col-lg-6 mb-30 mb-lg-0">
+                    <div class="row">
+                        <div class="col-11 col-md-6  col-lg-12">
+                            <div class="section-title has-title-rotate">
+                                <span class="title-rotate">#schedule</span>
+                                <h2 class="sec-title1 text-white">Contact with us</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="info-box2 px-60 py-60 mb-40">
+                        <div class="info-style1 text-center text-sm-start">
+                            <span class="icon-btn2"><i class="fas fa-map-marker-alt"></i></span>
+                            <p class="fs-4 lh-1 fw-medium text-white mb-1 mb-sm-0">Address</p>
+                            <p class="text-white mb-0">301 Massachusetts Ave, Lunenburg MA 1462</p>
+                        </div>
+                        <div class="info-style1 text-center text-sm-start">
+                            <span class="icon-btn2"><i class="fas fa-phone"></i></span>
+                            <p class="fs-4 lh-1 fw-medium text-white mb-1 mb-sm-0">Get In Touch</p>
+                            <p class="text-white mb-0"><a href="tel:13456789" class="text-inherit">85 125 1256 12145</a></p>
+                        </div>
+                        <div class="info-style1 text-center text-sm-start">
+                            <span class="icon-btn2"><i class="fas fa-envelope"></i></span>
+                            <p class="fs-4 lh-1 fw-medium text-white mb-1 mb-sm-0">Mail Us</p>
+                            <p class="text-white mb-0"><a href="mailto:info@example.com" class="text-inherit">info@example.com</a></p>
+                        </div>
+                    </div>
+                    <span class="text-white fw-medium fs-4">Follow Me On:</span>
+                    <div class="d-inline-flex gap-2 mt-2 mt-sm-0 ms-sm-3">
+                        <a class="icon-btn" href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a class="icon-btn" href="#"><i class="fab fa-twitter"></i></a>
+                        <a class="icon-btn" href="#"><i class="fab fa-linkedin-in"></i></a>
+                        <a class="icon-btn" href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <form action="https://html.vecurosoft.com/gamio/demo/mail.php" method="POST" class="contact-form contact-form-style1 form-dark px-60 py-60 ">
+                        <div class="row">
+                            <div class="col-lg-12 form-group">
+                                <label class="text-white" for="name">Enter Name</label>
+                                <input type="text" id="name" name="name" class="form-control" placeholder="Enter Your Name">
+                                <i class="fal fa-user"></i>
+                            </div>
+                            <div class="col-lg-12 form-group">
+                                <label class="text-white" for="email">Enter Email</label>
+                                <input type="text" id="email" name="email" class="form-control" placeholder="Enter Your Email">
+                                <i class="fal fa-envelope"></i>
+                            </div>
+                            <div class="col-12 form-group">
+                                <label class="text-white" for="message">Enter Message</label>
+                                <textarea class="form-control" id="message" rows="5" name="message" placeholder="Your Message"></textarea>
+                                <i class="fal fa-pencil-alt"></i>
+                            </div>
+                            <div class="col-12 form-group mb-0">
+                                <button type="submit" class="vs-btn gradient-btn ">Submit Your Quote</button>
+                                <p class="form-messages text-white mt-20 mb-0"></p>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!--==============================
+    Blog Area
+    ==============================-->
+    <section class="vs-blog-wrapper vs-blog-layout2 link-inherit space-top space-md-bottom" id="blog">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-xl-6 col-lg-7 col-md-8">
+                    <div class="section-title text-center">
+                        <h2 class="sec-title1 text-center">Latest News Feed</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="row vs-carousel arrow-margin" data-arrows="true" data-slide-show="3" data-md-slide-show="2" data-sm-slide-show="1" data-xs-slide-show="1">
+                <div class="col-sm-4">
+                    <div class="vs-blog image-scale-hover">
+                        <a href="blog-details.html" class="overlay"></a>
+                        <div class="blog-image">
+                            <a href="blog-details.html"><img src="{% static 'images/blog/blog-img-2-1.jpg' %}" width="100%" alt="Blog Image"></a>
+                        </div>
+                        <div class="blog-content">
+                            <div class="blog-meta text-light fs-xs mb-10 text-white">
+                                <a href="blog.html"><i class="fal fa-calendar-alt"></i>January 22, 2025</a>
+                            </div>
+                            <h3 class="blog-title h5 font-theme mb-0 text-white"><a href="blog-detatils.html">Assertively envisioneer granul channels rather</a></h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="vs-blog image-scale-hover">
+                        <a href="blog-details.html" class="overlay"></a>
+                        <div class="blog-image">
+                            <a href="blog-details.html"><img src="{% static 'images/blog/blog-img-2-2.jpg' %}" width="100%" alt="Blog Image"></a>
+                        </div>
+                        <div class="blog-content">
+                            <div class="blog-meta text-light fs-xs mb-10 text-white">
+                                <a href="blog.html"><i class="fal fa-calendar-alt"></i>February 13, 2025</a>
+                            </div>
+                            <h3 class="blog-title h5 font-theme mb-0 text-white"><a href="blog-detatils.html">Latin derived Cicero's 1st- ofthe Finibus col Finibus</a></h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="vs-blog image-scale-hover">
+                        <a href="blog-details.html" class="overlay"></a>
+                        <div class="blog-image">
+                            <a href="blog-details.html"><img src="{% static 'images/blog/blog-img-2-3.jpg' %}" width="100%" alt="Blog Image"></a>
+                        </div>
+                        <div class="blog-content">
+                            <div class="blog-meta text-light fs-xs mb-10 text-white">
+                                <a href="blog.html"><i class="fal fa-calendar-alt"></i>March 18, 2025</a>
+                            </div>
+                            <h3 class="blog-title h5 font-theme mb-0 text-white"><a href="blog-detatils.html">From its medieval origins digital era about</a></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    {% block custom_script %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const tabs = document.querySelectorAll('.tab-btn');
+                const slides = document.querySelectorAll('#slideStrem .position-relative');
+            
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', function(e) {
+                        e.preventDefault();
+            
+                        // Remove 'active' class from all tabs
+                        tabs.forEach(t => t.classList.remove('active'));
+            
+                        // Add 'active' class to the clicked tab
+                        tab.classList.add('active');
+            
+                        // Get the index of the clicked tab
+                        const index = parseInt(tab.getAttribute('data-slide'));
+            
+                        // Hide all slides
+                        slides.forEach(slide => {
+                            slide.style.display = 'none'; // Hide all slides
+                        });
+            
+                        // Show the selected slide
+                        slides[index].style.display = 'block';
+                    });
+                });
+            
+                // Optionally, show the first slide by default
+                slides.forEach((slide, index) => {
+                    slide.style.display = index === 0 ? 'block' : 'none';
+                });
+            });
+        </script>
+    {% endblock %}
+{% endblock %}

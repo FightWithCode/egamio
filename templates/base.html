@@ -1,0 +1,416 @@
+<!-- templates/base.html -->
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Site{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <noscript>
+        <link rel="stylesheet" href="{% static 'css/bootstrap.css' %}">
+        <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    </noscript>
+    {% block custom_css %}
+
+    {% endblock %}
+</head>
+<body>
+    <!-- Header Section -->
+    <div id="stickyHeader" class="sticky-header-wrap sticky-header bg-black py-1 py-sm-2 py-lg-1">
+        <div class="container position-relative">
+            <div class="row align-items-center">
+                <div class="col-5 col-md-3">
+                    <div class="logo">
+                        <a href="index-2.html"><img src='{% static "images/base/logo-2.png" %}' alt="Gamio"></a>
+                    </div>
+                </div>
+                <div class="col-7 col-md-9 text-end position-static">
+                    <nav id="mainMenu" class="main-menu menu-sticky1 d-none d-lg-block link-inherit hidden ">
+                        <ul>
+                            <li class="menu-item-has-children">
+                                <a href="index-2.html">Home</a>
+                                <ul class="sub-menu">
+                                    <li><a href="index-2.html">Home One</a></li>
+                                    <li><a href="index-3.html">Home Two</a></li>
+                                    <li><a href="index-4.html">Home Three</a></li>
+                                </ul>
+                            </li>
+                            <li>
+                                <a href="about.html">About</a>
+                            </li>
+                            <li class="mega-menu-wrap menu-item-has-children">
+                                <a href="#">Pages</a>
+                                <ul class="mega-menu">
+                                    <li><a href="shop.html">Pagelist 1</a>
+                                        <ul>
+                                            <li><a href="index-2.html">Home One</a></li>
+                                            <li><a href="index-3.html">Home Two</a></li>
+                                            <li><a href="index-4.html">Home Three</a></li>
+                                            <li><a href="about.html">About Us</a></li>
+                                        </ul>
+                                    </li>
+                                    <li><a href="#">Pagelist 2</a>
+                                        <ul>
+                                            <li><a href="player.html">Players</a></li>
+                                            <li><a href="player-details.html">Players Details</a></li>
+                                            <li><a href="team.html">Teams</a></li>
+                                            <li><a href="team-details.html">Team Details</a></li>
+                                        </ul>
+                                    </li>
+                                    <li><a href="#">Pagelist 3</a>
+                                        <ul>
+                                            <li><a href="blog.html">Blog</a></li>
+                                            <li><a href="blog-details.html">Blog Details</a></li>
+                                            <li><a href="shop.html">Shop</a></li>
+                                            <li><a href="shop-details.html">Shop Details</a></li>
+                                        </ul>
+                                    </li>
+                                    <li><a href="#">Pagelist 4</a>
+                                        <ul>
+                                            <li><a href="tournament.html">Tournament</a></li>
+                                            <li><a href="contact.html">Contact Us</a></li>
+                                            <li><a href="error.html">Error 404 Page</a></li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+                            <li class="menu-item-has-children">
+                                <a href="blog.html">Blog</a>
+                                <ul class="sub-menu">
+                                    <li><a href="blog.html">Blog</a></li>
+                                    <li><a href="blog-details.html">Blog Details</a></li>
+                                </ul>
+                            </li>
+                            <li>
+                                <a href="contact.html">Contact</a>
+                            </li>
+                        </ul>
+                    </nav>
+                    <button id="menuToggle" class="vs-menu-toggle text-theme border-theme d-inline-block d-lg-none"><i class="far fa-bars"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--==============================
+    Sidemenu
+    ============================== -->
+    <div id="sideMenu" class="sidemenu-wrapper d-none d-lg-block hidden ">
+        <div class="sidemenu-content bg-light-dark">
+            <button id="sideMenuClose" class="closeButton border-theme text-theme bg-theme-hover sideMenuCls"><i class="far fa-times"></i></button>
+            <div class="about-box">
+                <a href="indeax.html"><img src='{% static "images/base/logo-2.png" %}' alt="Gamio"></a>
+                <p class="text-light mt-3">Appropriately reinvent cross-unit scenarios with reliable metrics. Dramatically morph distinctive alignments whereas.</p>
+                <ul class="social-links fs-xs text-white">
+                    <li><a href="#" class="icon-btn"><i class="fab fa-facebook-f"></i></a></li>
+                    <li><a href="#" class="icon-btn"><i class="fab fa-twitter"></i></a></li>
+                    <li><a href="#" class="icon-btn"><i class="fab fa-linkedin-in"></i></a></li>
+                    <li><a href="#" class="icon-btn"><i class="fab fa-youtube"></i></a></li>
+                </ul>
+                <div class="my-40">
+                    <div class="info-style1">
+                        <span class="icon-btn2"><i class="fas fa-map-marker-alt"></i></span>
+                        <p class="fs-4 lh-1 fw-medium text-white mb-0">Address</p>
+                        <p class="text-white mb-0">301 Massachusetts Ave, Lunenburg MA 1462</p>
+                    </div>
+                    <div class="info-style1">
+                        <span class="icon-btn2"><i class="fas fa-phone"></i></span>
+                        <p class="fs-4 lh-1 fw-medium text-white mb-0">Get In Touch</p>
+                        <p class="text-white mb-0"><a href="tel:13456789" class="text-inherit">85 125 1256 12145</a></p>
+                    </div>
+                    <div class="info-style1">
+                        <span class="icon-btn2"><i class="fas fa-envelope"></i></span>
+                        <p class="fs-4 lh-1 fw-medium text-white mb-0">Mail Us</p>
+                        <p class="text-white mb-0"><a href="mailto:info@example.com" class="text-inherit">info@example.com</a></p>
+                    </div>
+                </div>
+            </div>
+            <h3 class="sidebox-title text-white h5">Recent viewed</h3>
+            <div class="post-thumb-style1">
+                <div class="vs-blog d-flex gap-3">
+                    <div class="media-img">
+                        <a href="blog-details.html"><img src="assets/img/widget/recent-post-1-1.png" alt="Recent Post"></a>
+                    </div>
+                    <div class="media-body align-self-center">
+                        <h4 class="h5 blog-title font-theme lh-base text-white mb-0"><a href="blog-details.html">The General Sery vice Administr</a></h4>
+                        <div class="blog-meta text-light fs-xs mt-1">
+                            <a href="blog.html"><i class="fal fa-calendar-alt"></i>June 21, 2025</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="vs-blog d-flex gap-3">
+                    <div class="media-img">
+                        <a href="blog-details.html"><img src="assets/img/widget/recent-post-1-2.png" alt="Recent Post"></a>
+                    </div>
+                    <div class="media-body align-self-center">
+                        <h4 class="h5 blog-title font-theme lh-base text-white mb-0"><a href="blog-details.html">Lorem ipsum is placeholder text commonly</a></h4>
+                        <div class="blog-meta text-light fs-xs mt-1">
+                            <a href="blog.html"><i class="fal fa-calendar-alt"></i>June 21, 2025</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="vs-blog d-flex gap-3">
+                    <div class="media-img">
+                        <a href="blog-details.html"><img src="assets/img/widget/recent-post-1-3.png" alt="Recent Post"></a>
+                    </div>
+                    <div class="media-body align-self-center">
+                        <h4 class="h5 blog-title font-theme lh-base text-white mb-0"><a href="blog-details.html">From its medieval origins to the digital</a></h4>
+                        <div class="blog-meta text-light fs-xs mt-1">
+                            <a href="blog.html"><i class="fal fa-calendar-alt"></i>June 21, 2025</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--==============================
+    Popup Search Box
+    ============================== -->
+    <div id="searchBox" class="popup-search-box d-lg-block hidden ">
+        <button id="searchClose" class="searchClose border-theme text-theme"><i class="fal fa-times"></i></button>
+        <form action="#">
+            <input type="text" class="border-theme" placeholder="What are you looking for">
+            <button type="submit"><i class="fal fa-search"></i></button>
+        </form>
+    </div>
+    <!--==============================
+    Mobile Menu
+    ============================== -->
+    <div id="mobileMenu" class="vs-menu-wrapper hidden ">
+        <div class="vs-menu-area bg-dark">
+            <button id="mobileMenuClose" class="vs-menu-toggle"><i class="fal fa-times"></i></button>
+            <div class="mobile-logo">
+                <a href="index-2.html"><img src='{% static "images/base/logo-2.png" %}' alt="Gamio"></a>
+            </div>
+            <div class="vs-mobile-menu link-inherit"></div>
+        </div>
+    </div>
+    <!--==============================
+    Header Area
+    ==============================-->
+    <header class="header-wrapper header-layout2 mt-30">
+        <div class="container position-relative">
+            <div class="bg-fluid background-image" style="background-image: url({% static 'images/base/header-bg.jpg' %})">
+                <div class="header-top">
+                    <div class="container px-0">
+                        <div class="top-innner">
+                            <div class="row align-items-center">
+                                <div class="col-sm-6 d-none d-md-block">
+                                    <p class="top-title">Welcome to our great eSports Team. <a class="text-inherit" href="team.html"><u class=" fw-bold">Join Now!</u></a></p>
+                                </div>
+                                <div class="col-sm-6 text-end d-none d-md-block">
+                                    <div class="d-flex align-items-center justify-content-end">
+                                        <ul class="social-links fs-xs text-white">
+                                            <li><a href="#" class="icon-btn6"><i class="fab fa-facebook-f"></i></a></li>
+                                            <li><a href="#" class="icon-btn6"><i class="fab fa-twitter"></i></a></li>
+                                            <li><a href="#" class="icon-btn6"><i class="fab fa-linkedin-in"></i></a></li>
+                                            <li><a href="#" class="icon-btn6"><i class="fab fa-youtube"></i></a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-30">
+                    <div class="row align-items-center">
+                        <div class="col-6 col-lg-3 col-xl-2">
+                            <div class="header-logo py-3 py-lg-0">
+                                <a href="index-2.html"><img src='{% static "images/base/logo-2.png" %}' alt="Gamio"></a>
+                            </div>
+                        </div>
+                        <div class="col-6 col-lg-6 col-xl-5 text-end">
+                            <nav id="mainMenu" class="main-menu menu-style1 mobile-menu-active ">
+                                <ul>
+                                    <li class="menu-item-has-children">
+                                        <a href="index-2.html">Home</a>
+                                        <ul class="sub-menu">
+                                            <li><a href="index-2.html">Home One</a></li>
+                                            <li><a href="index-3.html">Home Two</a></li>
+                                            <li><a href="index-4.html">Home Three</a></li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        <a href="about.html">About</a>
+                                    </li>
+                                    <li class="mega-menu-wrap menu-item-has-children">
+                                        <a href="#">Pages</a>
+                                        <ul class="mega-menu">
+                                            <li><a href="shop.html">Pagelist 1</a>
+                                                <ul>
+                                                    <li><a href="index-2.html">Home One</a></li>
+                                                    <li><a href="index-3.html">Home Two</a></li>
+                                                    <li><a href="index-4.html">Home Three</a></li>
+                                                    <li><a href="about.html">About Us</a></li>
+                                                </ul>
+                                            </li>
+                                            <li><a href="#">Pagelist 2</a>
+                                                <ul>
+                                                    <li><a href="player.html">Players</a></li>
+                                                    <li><a href="player-details.html">Players Details</a></li>
+                                                    <li><a href="team.html">Teams</a></li>
+                                                    <li><a href="team-details.html">Team Details</a></li>
+                                                </ul>
+                                            </li>
+                                            <li><a href="#">Pagelist 3</a>
+                                                <ul>
+                                                    <li><a href="blog.html">Blog</a></li>
+                                                    <li><a href="blog-details.html">Blog Details</a></li>
+                                                    <li><a href="shop.html">Shop</a></li>
+                                                    <li><a href="shop-details.html">Shop Details</a></li>
+                                                </ul>
+                                            </li>
+                                            <li><a href="#">Pagelist 4</a>
+                                                <ul>
+                                                    <li><a href="tournament.html">Tournament</a></li>
+                                                    <li><a href="contact.html">Contact Us</a></li>
+                                                    <li><a href="error.html">Error 404 Page</a></li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li class="menu-item-has-children">
+                                        <a href="blog.html">Blog</a>
+                                        <ul class="sub-menu">
+                                            <li><a href="blog.html">Blog</a></li>
+                                            <li><a href="blog-details.html">Blog Details</a></li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        <a href="contact.html">Contact</a>
+                                    </li>
+                                </ul>
+                            </nav>
+                            <button id="menuToggle1" type="button" class="vs-menu-toggle text-white d-inline-block d-lg-none"> <i class="far fa-bars"></i></button>
+                        </div>
+                        <div class="col-lg-3 col-xl-5 d-none d-lg-block">
+                            <div class="header-right d-flex align-items-center justify-content-end">
+                                <ul class="header-list1 list-style-none ml-20">
+                                    <li>
+                                        <button class="icon-btn7 searchBoxTggler"><i class="far fa-search"></i></button>
+                                    </li>
+                                    <li>
+                                        <button class="icon-btn7 sideMenuToggler"><i class="far fa-bars"></i></button>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Body Section -->
+    <main>
+        {% block body %}
+
+        {% endblock %}
+    </main>
+
+    <!--==============================
+		Footer Area
+	==============================-->
+    <footer class="footer-wrapper footer-layout1 bg-fluid bg-major-black position-relative">
+        <div class="bg-fluid d-none d-none d-xl-block position-absolute start-0 top-0 w-100 h-100" data-bg-src="{% static 'images/bg/footer.jpg' %}"></div>
+        <div class="footer-widget-wrapper  dark-style1 z-index-common">
+            <div class="container">
+                <div class="row justify-content-between">
+                    <div class="col-md-6 col-lg-3 col-xl-4">
+                        <div class="widget footer-widget pt-0">
+                            <h3 class="widget_title">About Us</h3>
+                            <div class="vs-widget-about">
+                                <p class="about-text text-footer1 pe-xl-5">The League of Legends offseason is in full effect and teams are looking to sign new players to strengthen their roster or to re-sign their current players.</p>
+                                <div class="d-flex gap-2 text-white mt-45">
+                                    <a class="icon-btn" href="#"><i class="fab fa-facebook-f"></i></a>
+                                    <a class="icon-btn" href="#"><i class="fab fa-twitter"></i></a>
+                                    <a class="icon-btn" href="#"><i class="fab fa-linkedin-in"></i></a>
+                                    <a class="icon-btn" href="#"><i class="fab fa-youtube"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-2">
+                        <div class="widget widget_categories footer-widget   ">
+                            <h3 class="widget_title">Categories</h3>
+                            <ul>
+                                <li><a href="#">Ancient</a></li>
+                                <li><a href="#">Fantasy</a></li>
+                                <li><a href="#">Horror</a></li>
+                                <li><a href="#">Shooting</a></li>
+                                <li><a href="#">MS-XBOX</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-md-6 col-lg-3 col-xl-2">
+                        <div class="widget widget_nav_menu footer-widget  ">
+                            <h3 class="widget_title">NEED HELP?</h3>
+                            <div class="menu-all-pages-container">
+                                <ul class="menu">
+                                    <li><a href="#">Company</a></li>
+                                    <li><a href="#">For the fans</a></li>
+                                    <li><a href="#">Press</a></li>
+                                    <li><a href="#">Privacy</a></li>
+                                    <li><a href="#">Policy</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3 col-xl-3">
+                        <div class="widget footer-widget  ">
+                            <h3 class="widget_title">Contact Us</h3>
+                            <div class="vs-widget-about">
+                                <p class="contact-info"><i class="fal fa-map-marker-alt text-white"></i>121 King St, Melbourne VIC 3000, Australia</p>
+                                <p class="contact-info"><i class="fal fa-phone text-white"></i><a href="tel:+65965252561">(888)-659-252561</a></p>
+                                <p class="contact-info"><i class="fal fa-envelope text-white"></i><a href="mailto:info@example.com">info@example.com</a></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer-copyright bg-black z-index-step1">
+            <div class="container">
+                <div class="row justify-content-between">
+                    <div class="col-xl-auto align-self-center text-center py-3 py-xl-0 text-xl-start">
+                        <p class="copywrite-text">Copyright &copy; 2024 <a href="index-2.html">Gamio</a> All Rights Reserved By <a href="https://themeforest.net/user/vecuro_themes">Vecuro</a></p>
+                    </div>
+                    <div class="col-xl-auto d-none d-xl-block">
+                        <div class="footer-menu">
+                            <ul>
+                                <li><a href="#">Features</a></li>
+                                <li><a href="#">Request</a></li>
+                                <li><a href="#">Imprint</a></li>
+                                <li><a href="#">Privacy</a></li>
+                                <li><a href="#">Policy</a></li>
+                                <li><a href="#">Cookie</a></li>
+                                <li><a href="#">Content</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <a href="#" class="scrollToTop icon-btn3"><i class="far fa-angle-up"></i></a>
+    {% comment %} JS Files {% endcomment %}
+    <script src="{% static 'js/jquery.js' %}" defer></script>
+    <script src="{% static 'js/vsmenu.js' %}" defer></script>
+    <script src="{% static 'js/main.js' %}" defer></script>
+    <script>
+        var loadDeferredStyles = function() {
+            var addStylesNode = document.createElement("link");
+            addStylesNode.rel = "stylesheet";
+            addStylesNode.href = "{% static 'css/fontawesome.css' %}";
+            document.body.appendChild(addStylesNode);
+        };
+        var raf = requestAnimationFrame || mozRequestAnimationFrame || webkitRequestAnimationFrame || msRequestAnimationFrame;
+        if (raf) raf(function() { window.setTimeout(loadDeferredStyles, 0); });
+        else window.addEventListener('load', loadDeferredStyles);
+    </script>
+    {% block custom_script %}
+
+    {% endblock %}
+</body>
+</html>

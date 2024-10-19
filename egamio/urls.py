@@ -16,8 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from egamio.views import home, blogs
 
 urlpatterns = [
+    path('', home, name='home'),
+    path('blogs', blogs, name='blogs'),
     path('admin/', admin.site.urls),
     path('accounts/', include("accounts.urls")),
     path('finder/', include("finder.urls")),
