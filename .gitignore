@@ -18,7 +18,6 @@ egamio/migrations/*
 media_root/
 media_root/*
 media_root/qr_codes/*
-static/*
 .env
 *.pyc
 *.sqlite3
