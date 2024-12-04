@@ -13,6 +13,7 @@ class RecruitmentPostListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def perform_create(self, serializer):
+        print(self.request.user)
         serializer.save(created_by=self.request.user)
 
 class RecruitmentApplicationListCreateView(generics.ListCreateAPIView):
