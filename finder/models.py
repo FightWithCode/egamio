@@ -3,7 +3,6 @@ from django.db import models
 from django.conf import settings
 
 from accounts.models import Team, Role
-# Assuming you have the Role and Team models as shown previously
 
 class RecruitmentPost(models.Model):
     """
