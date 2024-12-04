@@ -8,7 +8,8 @@ from rest_framework.views import Response
 from rest_framework import status, permissions
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from .models import UserGameProfile, Team
+from .models import UserGameProfile, Team, Role
+from games.models import Game
 from .serializers import PlayerSignupSerializer, TeamSignupSerializer, CustomTokenObtainPairSerializer
 
 
@@ -89,8 +90,8 @@ class FinishGoogleSignup(APIView):
     def post(self, request):
         try:
             if request.data.get("type") == "player":
-                roles = request.data.get('roles', [])
-                game = request.data.get('game', None)
+                roles = Role.objects.filter(id__in=request.data.get('roles'))
+                game = Game.objects.get(id=request.data.get('game'))
                 ign = request.data.get('ign', None)
                 game_data = request.data.get('game_data', {})
                 preference_data = request.data.get('preference_data', {})
@@ -105,11 +106,11 @@ class FinishGoogleSignup(APIView):
                 ugp.roles.set(roles)
                 return Response({"msg": "Player signup successful"}, status=status.HTTP_200_OK)
             else:
-                game = request.data.get("game")
+                game = Game.objects.get(id=request.data.get('game'))
                 team_name = request.data.get('team_name')
                 logo = request.data.get('logo', None)
                 looking_for_players = request.data.get('looking_for_players', 0)
-                looking_for_roles = request.data.get('looking_for_roles', [])
+                looking_for_roles = Role.objects.filter(id__in=request.data.get('looking_for_roles', []))
 
                 # Create the Team
                 team = Team.objects.create(
@@ -126,6 +127,6 @@ class FinishGoogleSignup(APIView):
                 return Response({"msg": "Team signup successful"}, status=status.HTTP_200_OK)
 
         except ValueError as e:
-            return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'msg': "Something went wrong!", 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
