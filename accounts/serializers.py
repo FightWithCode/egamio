@@ -64,41 +64,30 @@ class PlayerSignupSerializer(serializers.ModelSerializer):
         ugp.roles.set(roles)
         return user
 
-class TeamSignupSerializer(serializers.ModelSerializer):
-    team_name = serializers.CharField(max_length=150, write_only=True)
-    logo = serializers.ImageField(required=False, write_only=True)
-    looking_for_players = serializers.IntegerField(default=0, write_only=True)
-    looking_for_roles = serializers.PrimaryKeyRelatedField(queryset=Role.objects.all(), many=True, required=False, write_only=True)
-    game = serializers.PrimaryKeyRelatedField(queryset=Game.objects.all())
+
+class UserGameProfileSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source='user.name', read_only=True)
+    game_name = serializers.CharField(source='game.name', read_only=True)
+    roles_list = serializers.SerializerMethodField()
 
     class Meta:
+        model = UserGameProfile
+        fields = ['uuid', 'user_name', 'ign', 'game_name', 'roles_list', 'featured_image', 'experience']
+
+    def get_roles_list(self, obj):
+        return [role.name for role in obj.roles.all()]
+
+
+class TeamSerializer(serializers.ModelSerializer):
+    game_name = serializers.CharField(source='game.name', read_only=True)
+    
+    class Meta:
+        model = Team
+        fields = ['id', 'name', 'description', 'logo', 'game_name', 
+                 'location', 'looking_for_players']
+
+
+class UserMinimalSerializer(serializers.ModelSerializer):
+    class Meta:
         model = User
-        fields = ['name', 'email', 'password', 'location', 'team_name', 'logo', 'looking_for_players', 'looking_for_roles', 'game']
-        extra_kwargs = {
-            'password': {'write_only': True}
-        }
-
-    def create(self, validated_data):
-        game = validated_data.pop("game")
-        team_name = validated_data.pop('team_name')
-        logo = validated_data.pop('logo', None)
-        looking_for_players = validated_data.pop('looking_for_players', 0)
-        looking_for_roles = validated_data.pop('looking_for_roles', [])
-
-        # Create the User
-        user = User.objects.create_user(**validated_data)
-
-        # Create the Team
-        team = Team.objects.create(
-            name=team_name,
-            created_by=user,
-            logo=logo,
-            game=game,
-            location=validated_data.get('location', ''),
-            looking_for_players=looking_for_players,
-        )
-        team.looking_for_roles.set(looking_for_roles)
-        team.save()
-        user.save()
-
-        return user
+        fields = ['id', 'name', 'location']

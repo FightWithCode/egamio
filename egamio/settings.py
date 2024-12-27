@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     "accounts",
     "games",
     "finder",
+    "egthreads"
 ]
 
 SITE_ID = 1
@@ -147,6 +148,7 @@ USE_I18N = True
 
 USE_TZ = True
 
+FRONTEND_URL = config('FRONTEND_URL')
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
@@ -230,3 +232,11 @@ SIMPLE_JWT = {
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'AUTH_HEADER_NAME': 'HTTP_AUTHORIZATION',
 }
+
+# EMAIL SETTINGS
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_PORT = config('EMAIL_PORT')
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')

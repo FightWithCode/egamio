@@ -26,6 +26,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     name = models.CharField(_("first name"), max_length=150, blank=True)
     email = models.EmailField(_("email address"), unique=True)
     location = models.CharField(max_length=150, default=None, null=True, blank=True)
+    is_profile_complete = models.BooleanField(default=False)
     is_staff = models.BooleanField(
         _("staff status"),
         default=False,
@@ -73,6 +74,19 @@ class User(AbstractBaseUser, PermissionsMixin):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
 
+class EmailVerificationToken(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    token = models.UUIDField(default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)
+
+    def is_valid(self):
+        # Token expires after 24 hours
+        from django.utils import timezone
+        from datetime import timedelta
+        return not self.is_used and (timezone.now() - self.created_at) < timedelta(hours=24)
+
+
 class Role(models.Model):
     """
     Model representing a role.
@@ -107,9 +121,7 @@ class Team(models.Model, TimeStamp):
         verbose_name=_("game")
     )
     location = models.CharField(max_length=255, blank=True, null=True)
-    looking_for_players = models.IntegerField(default=0)
-    looking_for_roles = models.ManyToManyField(Role, related_name='looking_for_roles', blank=True)
-
+    looking_for_players = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = _("team")
@@ -126,6 +138,7 @@ class UserGameProfile(models.Model, TimeStamp):
     game = models.ForeignKey('games.Game', on_delete=models.CASCADE)
     roles = models.ManyToManyField(Role, related_name='game_roles', blank=True)
     featured_image = models.ImageField(_("featured_image"), upload_to='user_game_profile/', blank=True, null=True)
+    experience = models.IntegerField(default=1)
     game_data = models.JSONField(default=get_json_default)
     preference_data = models.JSONField(default=get_json_default)
 

@@ -14,6 +14,7 @@ class RecruitmentPost(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
     roles = models.ManyToManyField(Role, related_name='recruitment_posts', blank=True)
+    completed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -33,21 +34,6 @@ class RecruitmentApplication(models.Model):
 
     def __str__(self):
         return f"Application by {self.applicant.name} for {self.recruitment_post.title}"
-
-
-class PlayerRecruitmentPost(models.Model):
-    """
-    Model representing a post created by a player looking for a team.
-    """
-    uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='player_recruitment_posts')
-    title = models.CharField(max_length=100)
-    description = models.TextField()
-    roles = models.ManyToManyField(Role, related_name='player_recruitment_posts', blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.title} - {self.user.name}"
 
 
 class TeamInvitation(models.Model):
