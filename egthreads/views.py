@@ -3,6 +3,7 @@ from django.db.models import F
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
 from django.utils import timezone
+from django.conf import settings
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -186,11 +187,9 @@ class ListThreadView(APIView):
             start_date = timezone.now() - timedelta(days=time_window)
             
             # Query with optimization and annotations
-            threads = Thread.objects.select_related('author', 'category')\
-                .prefetch_related('tags')\
+            threads = Thread.objects.select_related('author', 'game')\
                 .filter(
                     created_at__gte=start_date,
-                    is_active=True,
                     is_deleted=False
                 )\
                 .annotate(
@@ -220,13 +219,8 @@ class ListThreadView(APIView):
                         'name': thread.author.name,
                         'avatar': thread.author.avatar_url if hasattr(thread.author, 'avatar_url') else None
                     },
-                    'category': {
-                        'id': thread.category.id,
-                        'name': thread.category.name,
-                        'slug': thread.category.slug
-                    },
-                    'tags': [{'id': tag.id, 'name': tag.name} for tag in thread.tags.all()],
-                    'is_trending': thread.engagement_score > settings.TRENDING_THRESHOLD
+                    # 'tags': [{'id': tag.id, 'name': tag.name} for tag in thread.meta_keywords.all()],
+                    'is_trending': thread.engagement_score > 200
                 } for thread in paginated_threads],
                 'meta': {
                     'total_count': threads.count(),

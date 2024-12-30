@@ -8,6 +8,7 @@ class Thread(models.Model):
     slug = models.SlugField(max_length=250, unique=True)
     content = models.TextField()
     author = models.ForeignKey(User, on_delete=models.CASCADE)
+    is_deleted = models.BooleanField(default=False)
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
