@@ -12,8 +12,8 @@ router.register(r'threads', views.ThreadViewSet)
 router.register(r'comments', views.CommentViewSet)
 
 urlpatterns = [
-    path('threads/<int:id>/<slug:slug>/', views.ThreadViewSet.as_view({'get': 'retrieve'})),
     path('threads/list/', views.ListThreadView.as_view(), name='thread-best-suited'),
+    path('threads/<str:thread_id>/<slug:slug>', views.ThreadDetailView.as_view()),
     path('', include(router.urls)),
 ]
 

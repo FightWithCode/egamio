@@ -8,26 +8,25 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from .models import Thread, Comment
-from .serializers import ThreadSerializer, CommentSerializer
-from .permissions import IsAuthorOrReadOnly
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import generics
+from .models import Thread, Comment
+from .serializers import ThreadSerializer, CommentSerializer, ThreadDetailSerializer
+from .permissions import IsAuthorOrReadOnly
 
 
 class ThreadViewSet(viewsets.ModelViewSet):
     queryset = Thread.objects.all()
     serializer_class = ThreadSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
-    lookup_field = 'slug'
-    lookup_url_kwarg = 'slug'
+    lookup_field = 'thread_id'
+    lookup_url_kwarg = 'thread_id'
 
     def get_object(self):
         queryset = self.get_queryset()
-        thread_id = self.kwargs.get('id')
-        slug = self.kwargs.get('slug')
-        print(thread_id, slug)
+        thread_id = self.kwargs.get('thread_id')
         
-        obj = get_object_or_404(queryset, id=thread_id, slug=slug)
+        obj = get_object_or_404(queryset, thread_id=thread_id)
         self.check_object_permissions(self.request, obj)
         return obj
     
@@ -35,17 +34,8 @@ class ThreadViewSet(viewsets.ModelViewSet):
         serializer.save(author=self.request.user)
 
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        instance.views = F('views') + 1
-        instance.save()
-        # Refresh from database to get the updated views count
-        instance.refresh_from_db()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
-
     @action(detail=True, methods=['post'])
-    def like(self, request, slug=None):
+    def like(self, request, thread_id=None):
         thread = self.get_object()
         user = request.user
 
@@ -57,7 +47,7 @@ class ThreadViewSet(viewsets.ModelViewSet):
             return Response({'status': 'liked'})
 
     @action(detail=True)
-    def comments(self, request, slug=None):
+    def comments(self, request, thread_id=None):
         thread = self.get_object()
         comments = thread.comments.filter(parent=None)
         serializer = CommentSerializer(comments, many=True)
@@ -174,6 +164,19 @@ class CommentViewSet(viewsets.ModelViewSet):
         )
 
 
+class ThreadDetailView(generics.RetrieveAPIView):
+    queryset = Thread.objects.all()
+    serializer_class = ThreadDetailSerializer
+    permission_classes = [IsAuthorOrReadOnly]
+    lookup_field = 'thread_id'
+
+    def get(self, request, *args, **kwargs):
+        instance = self.get_object()
+        # Increment view count
+        Thread.objects.filter(thread_id=instance.thread_id).update(views=F('views') + 1)
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
 
 class ListThreadView(APIView):
     def get(self, request):
@@ -206,7 +209,7 @@ class ListThreadView(APIView):
 
             result = {
                 'data': [{
-                    'id': thread.id,
+                    'thread_id': thread.thread_id,
                     'title': thread.title,
                     'slug': thread.slug,
                     'views': thread.views,
@@ -214,6 +217,8 @@ class ListThreadView(APIView):
                     'comment_count': thread.comment_count,
                     'engagement_score': thread.engagement_score,
                     'created_at': thread.created_at,
+                    'game': thread.game.name,
+                    'short_content': thread.content[:200],
                     'author': {
                         'id': thread.author.id,
                         'name': thread.author.name,

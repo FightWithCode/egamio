@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.conf import settings
 from django.template.loader import render_to_string
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 from rest_framework.views import Response
 from rest_framework import status
 from rest_framework.views import APIView
@@ -165,15 +165,54 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         response_data = response.data
+        access = response_data.pop('access', None)
+        refresh = response_data.pop('refresh', None)
         # Add profile completion status to response
         user = User.objects.get(email=request.data.get('email'))
         response_data["is_profile_complete"] = user.is_profile_complete
         response_data["msg"] = "Success"
-        return Response(response_data, status=status.HTTP_200_OK)
+        response = Response(response_data, status=status.HTTP_200_OK)
+        response.set_cookie(
+            'access', access, max_age=3600, httponly=True, samesite='None', secure=True
+        )
+        response.set_cookie(
+            'refresh', refresh, max_age=3600, httponly=True, samesite='None', secure=True
+        )
+        return response
 
 
 class CustomTokenRefreshView(TokenRefreshView):
-    pass
+    def post(self, request, *args, **kwargs):
+        refresh = request.COOKIES.get('refresh')
+        
+        if refresh:
+            request.data['refresh'] = refresh
+        response = super().post(request, *args, **kwargs)
+
+        if response.status_code == 200:
+            access = response.data.get('access')
+            response.set_cookie(
+                'access', access, max_age=3600, httponly=True, samesite='None', secure=True
+            )
+        return response
+
+
+class CustomTokenVerifyView(TokenVerifyView):
+    def post(self, request, *args, **kwargs):
+        print(request.COOKIES)
+        access = request.COOKIES.get('access')
+        if access:
+            request.data['token'] = access
+        response = super().post(request, *args, **kwargs)
+        return response
+
+
+class LogoutView(APIView):
+    def post(self, request, *args, **kwargs):
+        response = Response(status=status.HTTP_204_NO_CONTENT)
+        response.delete_cookie('access')
+        response.delete_cookie('refresh')
+        return response
 
 
 class GoogleSignInView(APIView):

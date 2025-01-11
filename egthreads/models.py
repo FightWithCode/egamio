@@ -1,9 +1,23 @@
+import string
+import random
 from django.db import models
 from django.utils.text import slugify
 from accounts.models import User
 from games.models import Game
 
+def generate_thread_id(length=9):
+    characters = string.ascii_letters + string.digits  # Uppercase + lowercase + digits
+    unique_id = ''.join(random.choice(characters) for _ in range(length))
+    
+    # Check if the generated ID already exists in the database
+    while Thread.objects.filter(unique_id=unique_id).exists():
+        unique_id = ''.join(random.choice(characters) for _ in range(length))
+    
+    return unique_id
+
+
 class Thread(models.Model):
+    thread_id = models.CharField(max_length=9, default=generate_thread_id, unique=True)
     title = models.CharField(max_length=200)
     slug = models.SlugField(max_length=250, unique=True)
     content = models.TextField()
@@ -12,7 +26,7 @@ class Thread(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    likes = models.ManyToManyField(User, related_name='liked_threads', blank=True)
+    likes = models.ManyToManyField(User, related_name='liked_threads', blank=True) 
     views = models.PositiveIntegerField(default=0)
     is_featured = models.BooleanField(default=False)
     meta_description = models.CharField(max_length=160, blank=True)
@@ -23,6 +37,7 @@ class Thread(models.Model):
         indexes = [
             models.Index(fields=['slug']),
             models.Index(fields=['created_at']),
+            models.Index(fields=['thread_id']),
         ]
 
     def save(self, *args, **kwargs):
