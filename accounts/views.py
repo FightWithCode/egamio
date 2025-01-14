@@ -33,13 +33,13 @@ class UserSignupView(APIView):
             # Validate data
             if not all([email, password, name]):
                 return Response({
-                    'error': 'Please provide all required fields'
+                    'msg': 'Please provide all required fields'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
             # Check if user already exists
             if User.objects.filter(email=email).exists():
                 return Response({
-                    'error': 'User with this email already exists'
+                    'msg': 'User with this email already exists'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
             # Create user (but inactive)
@@ -64,6 +64,7 @@ class UserSignupView(APIView):
 
         except Exception as e:
             return Response({
+                'msg': "Somthing went wrong!",
                 'error': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
 
@@ -103,13 +104,13 @@ class VerifyEmailView(APIView):
                 verification_token = EmailVerificationToken.objects.get(token=token)
             except EmailVerificationToken.DoesNotExist:
                 return Response({
-                    'error': 'Invalid verification token'
+                    'msg': 'Invalid verification token'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
             # Check if token is valid
             if not verification_token.is_valid():
                 return Response({
-                    'error': 'Token has expired or already used'
+                    'msg': 'Token has expired or already used'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
             # Activate user
@@ -127,6 +128,7 @@ class VerifyEmailView(APIView):
 
         except Exception as e:
             return Response({
+                'msg': "Somthing went wrong!",
                 'error': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
 
@@ -140,7 +142,7 @@ class ResendVerificationEmailView(APIView):
                 user = User.objects.get(email=email, is_active=False)
             except User.DoesNotExist:
                 return Response({
-                    'error': 'No pending verification found for this email'
+                    'msg': 'No pending verification found for this email'
                 }, status=status.HTTP_400_BAD_REQUEST)
 
             # Create new verification token
@@ -155,6 +157,7 @@ class ResendVerificationEmailView(APIView):
 
         except Exception as e:
             return Response({
+                'msg': "Somthing went wrong!",
                 'error': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
 
@@ -248,9 +251,9 @@ class GoogleSignInView(APIView):
             })
 
         except ValueError as e:
-            return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'msg': "Somthing went wrong!", 'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'msg': "Somthing went wrong!", 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class FinishGoogleSignup(APIView):
@@ -296,7 +299,7 @@ class FinishGoogleSignup(APIView):
         except ValueError as e:
             return Response({'msg': "Something went wrong!", 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'msg': "Somthing went wrong!", 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CheckProfileStatus(APIView):
@@ -359,5 +362,6 @@ class CompleteProfile(APIView):
 
         except Exception as e:
             return Response({
+                'msg': "Somthing went wrong!",
                 'error': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
