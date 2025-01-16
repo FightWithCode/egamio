@@ -15,3 +15,4 @@ urlpatterns = [
     path('auth/google/', views.GoogleSignInView.as_view(), name='google_signin'),
     path('auth/google/step-2/', views.FinishGoogleSignup.as_view(), name='google_signin_step_2'),
 ]
+

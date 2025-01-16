@@ -100,7 +100,7 @@ class TeamSearchAPIView(generics.ListAPIView):
     pagination_class = PlayerSearchPagination
     
     def get_queryset(self):
-        queryset = RecruitmentPost.objects.select_related('team', 'team__game', 'created_by').all()
+        queryset = RecruitmentPost.objects.select_related('team', 'team__game', 'created_by').all().order_by('-id')
         
         # Get query parameters
         team_name = self.request.query_params.get('team_name', None)
@@ -120,7 +120,7 @@ class TeamSearchAPIView(generics.ListAPIView):
         
         if roles:
             roles_list = roles.split(',')
-            filters &= Q(roles__contains=roles_list)
+            filters &= Q(roles__name__in=roles_list)
 
         if filters:
             queryset = queryset.filter(filters).distinct()
