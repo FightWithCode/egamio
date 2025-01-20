@@ -5,16 +5,32 @@ from .models import Thread, Comment
 
 class CommentSerializer(serializers.ModelSerializer):
     author = UserMinimalSerializer(read_only=True)
+    is_liked_by_user = serializers.SerializerMethodField()
+    is_disliked_by_user = serializers.SerializerMethodField()
     replies = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ['id', 'content', 'author', 'created_at', 'updated_at', 'replies']
+        fields = ['id', 'content', 'author', 'is_liked_by_user', 'is_disliked_by_user', 'created_at', 'updated_at', 'replies']
 
     def get_replies(self, obj):
         if obj.replies.exists():
             return CommentSerializer(obj.replies.all(), many=True).data
         return []
+    
+    def get_is_liked_by_user(self, obj):
+        request = self.context.get('request')
+        print(request.user, obj.likes.all(),'--')
+        if request and request.user.is_authenticated:
+            return obj.likes.filter(id=request.user.id).exists()
+        return False
+    
+    def get_is_disliked_by_user(self, obj):
+        request = self.context.get('request')
+        print(request.user, obj.dislikes.all())
+        if request and request.user.is_authenticated:
+            return obj.dislikes.filter(id=request.user.id).exists()
+        return False
 
 class ThreadSerializer(serializers.ModelSerializer):
 
@@ -27,6 +43,22 @@ class ThreadSerializer(serializers.ModelSerializer):
             'meta_description', 'meta_keywords'
         ]
         read_only_fields = ['slug', 'views', 'is_featured',]
+
+
+class ReplySerializer(serializers.ModelSerializer):
+    is_liked_by_user = serializers.SerializerMethodField()
+    is_disliked_by_user = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'content', 'author', 'is_liked_by_user', 'is_disliked_by_user', 'created_at', 'updated_at', 'parent', 'thread']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def create(self, validated_data):
+        # Set the parent as the original comment and thread as the thread from the URL
+        parent_comment = validated_data.get('parent')
+        validated_data['thread'] = parent_comment.thread
+        return super().create(validated_data)
 
 
 class RecursiveCommentSerializer(serializers.ModelSerializer):
@@ -59,7 +91,7 @@ class RecursiveCommentSerializer(serializers.ModelSerializer):
 
 class ThreadMinimalSerializer(serializers.ModelSerializer):
     author = serializers.SerializerMethodField(read_only=True)
-
+    
     class Meta:
         model = Thread
         fields = ['id', 'title', 'content', 'slug', 'views', 'author', 'created_at']
@@ -67,48 +99,43 @@ class ThreadMinimalSerializer(serializers.ModelSerializer):
     def get_author(self, obj):
         return obj.author.name
 
-
-class ThreadDetailSerializer(serializers.ModelSerializer):
-    comments = serializers.SerializerMethodField()
-    likes_count = serializers.SerializerMethodField()
-    is_liked_by_user = serializers.SerializerMethodField()
-    is_disliked_by_user = serializers.SerializerMethodField()
-    time_since_posted = serializers.SerializerMethodField()
-    related_posts = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Thread
-        fields = [
-            'id', 'title', 'slug', 'content', 'author',
-            'created_at', 'updated_at', 'likes_count',
-            'is_liked_by_user', 'is_disliked_by_user', 'views', 'comments',
-            'time_since_posted', 'meta_description',
-            'meta_keywords', 'is_featured', 'related_posts', 'thread_id'
-        ]
-        read_only_fields = fields
-
     def get_comments(self, obj):
         # Only get top-level comments (no parent)
         comments = obj.comments.filter(parent=None)
         serializer = RecursiveCommentSerializer(comments, many=True, context=self.context)
         return serializer.data
 
+    # def get_is_liked_by_user(self, obj):
+    #     request = self.context.get('request')
+    #     print(request.user, obj.likes.all(),'--')
+    #     if request and request.user.is_authenticated:
+    #         return obj.likes.filter(id=request.user.id).exists()
+    #     return False
+    
+    # def get_is_disliked_by_user(self, obj):
+    #     request = self.context.get('request')
+    #     print(request.user, obj.dislikes.all())
+    #     if request and request.user.is_authenticated:
+    #         return obj.dislikes.filter(id=request.user.id).exists()
+    #     return False
+
+class ThreadDetailSerializer(serializers.ModelSerializer):
+    likes_count = serializers.SerializerMethodField()
+    related_posts = serializers.SerializerMethodField()
+    time_since_posted = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Thread
+        fields = [
+            'id', 'title', 'slug', 'content', 'author',
+            'created_at', 'updated_at', 'likes_count', 'views',
+            'time_since_posted', 'meta_description',
+            'meta_keywords', 'is_featured', 'related_posts', 'thread_id'
+        ]
+        read_only_fields = fields
+
     def get_likes_count(self, obj):
         return obj.likes.count()
-
-    def get_is_liked_by_user(self, obj):
-        request = self.context.get('request')
-        print(request.user, obj.likes.all(),'--')
-        if request and request.user.is_authenticated:
-            return obj.likes.filter(id=request.user.id).exists()
-        return False
-    
-    def get_is_disliked_by_user(self, obj):
-        request = self.context.get('request')
-        print(request.user, obj.dislikes.all())
-        if request and request.user.is_authenticated:
-            return obj.dislikes.filter(id=request.user.id).exists()
-        return False
 
     def get_time_since_posted(self, obj):
         from django.utils import timezone

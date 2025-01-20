@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics
 from .models import Thread, Comment
-from .serializers import ThreadSerializer, CommentSerializer, ThreadDetailSerializer
+from .serializers import ThreadSerializer, CommentSerializer, ThreadDetailSerializer, RecursiveCommentSerializer, ReplySerializer
 from .permissions import IsAuthorOrReadOnly
 
 
@@ -41,7 +41,7 @@ class ThreadViewSet(viewsets.ModelViewSet):
 
         if thread.likes.filter(id=user.id).exists():
             thread.likes.remove(user)
-            return Response({'status': 'unliked'})
+            return Response({'status': 'disliked'})
         else:
             thread.likes.add(user)
             return Response({'status': 'liked'})
@@ -123,7 +123,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
         if user in comment.likes.all():
             comment.likes.remove(user)
-            return Response({'status': 'unliked'})
+            return Response({'status': 'disliked'})
         else:
             comment.likes.add(user)
             return Response({'status': 'liked'})
@@ -176,6 +176,33 @@ class ThreadDetailView(generics.RetrieveAPIView):
         Thread.objects.filter(thread_id=instance.thread_id).update(views=F('views') + 1)
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
+
+
+class GetOtherThreadDetails(APIView):
+
+    def get(self, request, thread_id):
+        response = {}
+        try:
+            thread_obj = Thread.objects.get(thread_id=thread_id)
+            comments = thread_obj.comments.filter(parent=None)
+            serializer = RecursiveCommentSerializer(comments, many=True)
+            response["comments"] = serializer.data
+            response["liked"] = False
+            response["disliked"] = False
+            if request.user.is_authenticated:
+                response["liked"] = thread_obj.likes.filter(id=request.user.id).exists()
+            if request and request.user.is_authenticated:
+                response["disliked"] = thread_obj.dislikes.filter(id=request.user.id).exists()
+            response["msg"] = "fetched"
+            return Response(response, status=status.HTTP_200_OK)
+        except Thread.DoesNotExist:
+            response["msg"] = "Thread not found"
+            response["error"] = "Thread not found"
+            return Response(response, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            response["msg"] = "Something went wrong"
+            response["error"] = str(e)
+            return Response(response, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class ListThreadView(APIView):
@@ -242,7 +269,8 @@ class ListThreadView(APIView):
                 {'error': 'Failed to fetch best suited threads', 'detail': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-        
+
+
 class LikeThread(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -282,8 +310,103 @@ class DislikeThread(APIView):
                 thread.dislikes.add(request.user)
                 thread.likes.remove(request.user)
                 thread.save()   
-                return Response({'status': 'unliked'})
+                return Response({'status': 'disliked'})
         except Thread.DoesNotExist:
             return Response({'msg': 'Thread not found'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             return Response({'msg': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class CreateCommentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, thread_id):
+        thread = get_object_or_404(Thread, thread_id=thread_id)
+        content = request.data.get('content')
+
+        if not content:
+            return Response({'error': 'Content is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create the comment
+        comment = Comment.objects.create(
+            thread=thread,
+            content=content,
+            author=request.user
+        )
+
+        # Serialize and return the comment
+        comments = thread.comments.filter(parent=None)
+        serializer = RecursiveCommentSerializer(comments, many=True)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class ReplyToCommentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, thread_id, comment_id):
+        try:
+            # Fetch the thread and comment
+            thread = Thread.objects.get(thread_id=thread_id)
+            parent_comment = Comment.objects.get(id=comment_id, thread=thread)
+
+            # Prepare the data for the new reply
+            reply_data = {
+                'content': request.data.get('content'),
+                'parent': parent_comment.id,
+                'thread': thread.id,
+                'author': request.user.id  # Set the logged-in user as the author
+            }
+
+            # Serialize and validate the reply data
+            serializer = ReplySerializer(data=reply_data)
+            if serializer.is_valid():
+                # Save the new reply
+                reply = serializer.save()
+
+                # Return the serialized reply data
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except Thread.DoesNotExist:
+            return Response({"detail": "Thread not found."}, status=status.HTTP_404_NOT_FOUND)
+        except Comment.DoesNotExist:
+            return Response({"detail": "Comment not found."}, status=status.HTTP_404_NOT_FOUND)
+
+
+class LikeCommentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, comment_id):
+        comment = get_object_or_404(Comment, id=comment_id)
+        user = request.user
+
+        # If user has already liked the comment, remove the like
+        if user in comment.likes.all():
+            comment.likes.remove(user)
+            return Response({'status': 'unliked'}, status=status.HTTP_200_OK)
+        else:
+            # Add like to the comment
+            comment.likes.add(user)
+            if user in comment.dislikes.all():
+                comment.dislikes.remove(user)  # Remove dislike if the user liked the comment
+            return Response({'status': 'liked'}, status=status.HTTP_200_OK)
+
+
+class DislikeCommentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, comment_id):
+        comment = get_object_or_404(Comment, id=comment_id)
+        user = request.user
+
+        # If user has already disliked the comment, remove the dislike
+        if user in comment.dislikes.all():
+            comment.dislikes.remove(user)
+            return Response({'status': 'undisliked'}, status=status.HTTP_200_OK)
+        else:
+            # Add dislike to the comment
+            comment.dislikes.add(user)
+            if user in comment.likes.all():
+                comment.likes.remove(user)  # Remove like if the user disliked the comment
+            return Response({'status': 'disliked'}, status=status.HTTP_200_OK)
+
