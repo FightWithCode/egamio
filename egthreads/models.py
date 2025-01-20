@@ -10,7 +10,7 @@ def generate_thread_id(length=9):
     unique_id = ''.join(random.choice(characters) for _ in range(length))
     
     # Check if the generated ID already exists in the database
-    while Thread.objects.filter(unique_id=unique_id).exists():
+    while Thread.objects.filter(thread_id=unique_id).exists():
         unique_id = ''.join(random.choice(characters) for _ in range(length))
     
     return unique_id
@@ -27,6 +27,7 @@ class Thread(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     likes = models.ManyToManyField(User, related_name='liked_threads', blank=True) 
+    dislikes = models.ManyToManyField(User, related_name='disliked_threads', blank=True) 
     views = models.PositiveIntegerField(default=0)
     is_featured = models.BooleanField(default=False)
     meta_description = models.CharField(max_length=160, blank=True)
@@ -61,6 +62,6 @@ class Comment(models.Model):
         ordering = ['created_at']
 
     def __str__(self):
-        return f'Comment by {self.author.username} on {self.created_at}'
+        return f'Comment by {self.author.name} on {self.created_at}'
 
 

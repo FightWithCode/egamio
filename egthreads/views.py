@@ -242,3 +242,48 @@ class ListThreadView(APIView):
                 {'error': 'Failed to fetch best suited threads', 'detail': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+        
+class LikeThread(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, thread_id):
+        """Toggle like on a Thread"""
+        try:
+            thread = Thread.objects.get(thread_id=thread_id)
+
+            if request.user in thread.likes.all():
+                thread.likes.remove(request.user)
+                thread.save()
+                return Response({'status': 'removed'})
+            else:
+                thread.likes.add(request.user)
+                thread.dislikes.remove(request.user)
+                thread.save()
+                return Response({'status': 'liked'})
+        except Thread.DoesNotExist:
+            return Response({'msg': 'Thread not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'msg': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class DislikeThread(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, thread_id):
+        """Toggle like on a Thread"""
+        try:
+            thread = Thread.objects.get(thread_id=thread_id)
+
+            if request.user in thread.dislikes.all():
+                thread.dislikes.remove(request.user)
+                thread.save()
+                return Response({'status': 'removed'})
+            else:
+                thread.dislikes.add(request.user)
+                thread.likes.remove(request.user)
+                thread.save()   
+                return Response({'status': 'unliked'})
+        except Thread.DoesNotExist:
+            return Response({'msg': 'Thread not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            return Response({'msg': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
