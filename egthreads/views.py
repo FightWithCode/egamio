@@ -11,7 +11,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics
 from .models import Thread, Comment
-from .serializers import ThreadSerializer, CommentSerializer, ThreadDetailSerializer, RecursiveCommentSerializer, ReplySerializer
+from .serializers import ThreadSerializer, CommentSerializer, ThreadDetailSerializer, RecursiveCommentSerializer, ReplySerializer, ThreadCreateSerializer
 from .permissions import IsAuthorOrReadOnly
 
 
@@ -45,6 +45,33 @@ class ThreadViewSet(viewsets.ModelViewSet):
         else:
             thread.likes.add(user)
             return Response({'status': 'liked'})
+
+class CreateThread(APIView):
+    def post(self, request):
+        response = {}
+        try:
+            serializer = ThreadCreateSerializer(
+                data=request.data,
+                context={'request': request}
+            )
+            
+            if serializer.is_valid():
+                thread = serializer.save()
+                response["msg"] = 'Thread created successfully'
+                response["thread"] = {
+                    'thread_id': thread.thread_id,
+                    'slug': thread.slug,
+                    'title': thread.title
+                }
+                return Response(response, status=status.HTTP_201_CREATED)
+            else:
+                response["error"] = serializer.errors
+                response["msg"] = "Validation error"
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            response["error"] = str(e)
+            response["msg"] = "Something went wrong"
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -240,7 +267,7 @@ class ListThreadView(APIView):
                     'engagement_score': thread.engagement_score,
                     'created_at': thread.created_at,
                     'game': thread.game.name,
-                    'short_content': thread.content[:200],
+                    'short_content': thread.content,
                     'author': {
                         'id': thread.author.id,
                         'name': thread.author.name,

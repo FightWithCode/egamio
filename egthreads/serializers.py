@@ -32,6 +32,20 @@ class CommentSerializer(serializers.ModelSerializer):
             return obj.dislikes.filter(id=request.user.id).exists()
         return False
 
+class ThreadCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Thread
+        fields = ['title', 'content', 'game', 'meta_keywords']
+        
+    def create(self, validated_data):
+        # Get the user from the context
+        user = self.context['request'].user
+        thread = Thread.objects.create(
+            author=user,
+            **validated_data
+        )
+        return thread
+
 class ThreadSerializer(serializers.ModelSerializer):
 
     class Meta:

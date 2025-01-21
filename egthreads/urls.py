@@ -9,6 +9,7 @@ urlpatterns = router.urls
 
 
 urlpatterns = [
+    path('threads/create/', views.CreateThread.as_view(), name='create_thread'),
     path('threads/list/', views.ListThreadView.as_view(), name='thread-best-suited'),
     path('threads/like/<str:thread_id>/', views.LikeThread.as_view()),
     path('threads/dislike/<str:thread_id>/', views.DislikeThread.as_view()),
