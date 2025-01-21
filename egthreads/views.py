@@ -46,13 +46,6 @@ class ThreadViewSet(viewsets.ModelViewSet):
             thread.likes.add(user)
             return Response({'status': 'liked'})
 
-    @action(detail=True)
-    def comments(self, request, thread_id=None):
-        thread = self.get_object()
-        comments = thread.comments.filter(parent=None)
-        serializer = CommentSerializer(comments, many=True)
-        return Response(serializer.data)
-
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
@@ -183,9 +176,10 @@ class GetOtherThreadDetails(APIView):
     def get(self, request, thread_id):
         response = {}
         try:
+            print(request.user, '-----------')
             thread_obj = Thread.objects.get(thread_id=thread_id)
             comments = thread_obj.comments.filter(parent=None)
-            serializer = RecursiveCommentSerializer(comments, many=True)
+            serializer = RecursiveCommentSerializer(comments, many=True, context={"request": request})
             response["comments"] = serializer.data
             response["liked"] = False
             response["disliked"] = False
@@ -194,6 +188,7 @@ class GetOtherThreadDetails(APIView):
             if request and request.user.is_authenticated:
                 response["disliked"] = thread_obj.dislikes.filter(id=request.user.id).exists()
             response["msg"] = "fetched"
+            print(response)
             return Response(response, status=status.HTTP_200_OK)
         except Thread.DoesNotExist:
             response["msg"] = "Thread not found"

@@ -46,12 +46,10 @@ class ThreadSerializer(serializers.ModelSerializer):
 
 
 class ReplySerializer(serializers.ModelSerializer):
-    is_liked_by_user = serializers.SerializerMethodField()
-    is_disliked_by_user = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ['id', 'content', 'author', 'is_liked_by_user', 'is_disliked_by_user', 'created_at', 'updated_at', 'parent', 'thread']
+        fields = ['id', 'content', 'author', 'created_at', 'updated_at', 'parent', 'thread']
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def create(self, validated_data):
@@ -66,13 +64,14 @@ class RecursiveCommentSerializer(serializers.ModelSerializer):
     author = UserMinimalSerializer(read_only=True)
     likes_count = serializers.SerializerMethodField()
     is_liked_by_user = serializers.SerializerMethodField()
+    is_disliked_by_user = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
         fields = [
             'id', 'content', 'author', 'created_at', 
             'updated_at', 'likes_count', 'is_liked_by_user', 
-            'replies'
+            'replies', 'is_disliked_by_user'
         ]
 
     def get_replies(self, obj):
@@ -85,8 +84,16 @@ class RecursiveCommentSerializer(serializers.ModelSerializer):
 
     def get_is_liked_by_user(self, obj):
         request = self.context.get('request')
+        print(self.context, '--')
         if request and request.user.is_authenticated:
             return obj.likes.filter(id=request.user.id).exists()
+        return False
+
+    def get_is_disliked_by_user(self, obj):
+        request = self.context.get('request')
+        print(self.context, '----')
+        if request and request.user.is_authenticated:
+            return obj.dislikes.filter(id=request.user.id).exists()
         return False
 
 class ThreadMinimalSerializer(serializers.ModelSerializer):
@@ -94,7 +101,7 @@ class ThreadMinimalSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Thread
-        fields = ['id', 'title', 'content', 'slug', 'views', 'author', 'created_at']
+        fields = ['id', 'title', 'content', 'thread_id', 'slug', 'views', 'author', 'created_at']
     
     def get_author(self, obj):
         return obj.author.name
