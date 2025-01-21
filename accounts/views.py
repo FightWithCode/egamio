@@ -176,10 +176,10 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         response_data["msg"] = "Success"
         response = Response(response_data, status=status.HTTP_200_OK)
         response.set_cookie(
-            'access', access, max_age=3600, httponly=True, samesite='None', secure=True
+            'access', access, max_age=3600 * 24, httponly=True, samesite='None', secure=True
         )
         response.set_cookie(
-            'refresh', refresh, max_age=3600, httponly=True, samesite='None', secure=True
+            'refresh', refresh, max_age=3600 * 24 * 7, httponly=True, samesite='None', secure=True
         )
         return response
 
@@ -195,7 +195,7 @@ class CustomTokenRefreshView(TokenRefreshView):
         if response.status_code == 200:
             access = response.data.get('access')
             response.set_cookie(
-                'access', access, max_age=3600, httponly=True, samesite='None', secure=True
+                'access', access, max_age=3600 * 24, httponly=True, samesite='None', secure=True
             )
         return response
 
