@@ -236,20 +236,30 @@ class ListThreadView(APIView):
 
             # Time window configuration
             time_window = int(request.query_params.get('days', 30))
-            start_date = timezone.now() - timedelta(days=time_window)
             
-            # Query with optimization and annotations
-            threads = Thread.objects.select_related('author', 'game')\
-                .filter(
-                    created_at__gte=start_date,
-                    is_deleted=False
-                )\
-                .annotate(
-                    like_count=Count('likes'),
-                    comment_count=Count('comments'),
-                    engagement_score=F('views') + (F('like_count') * 2) + (F('comment_count') * 3)
-                )\
-                .order_by('-engagement_score', '-views', '-created_at')
+            # If no time_window is provided, include all threads
+            if time_window == 0:
+                threads = Thread.objects.select_related('author', 'game')\
+                    .filter(is_deleted=False)\
+                    .annotate(
+                        like_count=Count('likes'),
+                        comment_count=Count('comments'),
+                        engagement_score=F('views') + (F('like_count') * 2) + (F('comment_count') * 3)
+                    )\
+                    .order_by('-engagement_score', '-views', '-created_at')
+            else:
+                start_date = timezone.now() - timedelta(days=time_window)
+                threads = Thread.objects.select_related('author', 'game')\
+                    .filter(
+                        created_at__gte=start_date,
+                        is_deleted=False
+                    )\
+                    .annotate(
+                        like_count=Count('likes'),
+                        comment_count=Count('comments'),
+                        engagement_score=F('views') + (F('like_count') * 2) + (F('comment_count') * 3)
+                    )\
+                    .order_by('-engagement_score', '-views', '-created_at')
 
             # Pagination
             start_idx = (int(page) - 1) * int(per_page)
