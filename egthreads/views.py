@@ -360,6 +360,7 @@ class CreateCommentView(APIView):
         required=['content'],
     )
 
+    @swagger_auto_schema(request_body=content_schema)
     def post(self, request, thread_id):
         thread = get_object_or_404(Thread, thread_id=thread_id)
         content = request.data.get('content')
