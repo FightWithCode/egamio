@@ -1,4 +1,6 @@
 from datetime import timedelta
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from django.db.models import F
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
@@ -13,7 +15,6 @@ from rest_framework import generics
 from .models import Thread, Comment
 from .serializers import ThreadSerializer, CommentSerializer, ThreadDetailSerializer, RecursiveCommentSerializer, ReplySerializer, ThreadCreateSerializer
 from .permissions import IsAuthorOrReadOnly
-
 
 class ThreadViewSet(viewsets.ModelViewSet):
     queryset = Thread.objects.all()
@@ -351,6 +352,13 @@ class DislikeThread(APIView):
 
 class CreateCommentView(APIView):
     permission_classes = [IsAuthenticated]
+    content_schema = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'content': openapi.Schema(type=openapi.TYPE_STRING, description='Content of the comment', max_length=500),
+        },
+        required=['content'],
+    )
 
     def post(self, request, thread_id):
         thread = get_object_or_404(Thread, thread_id=thread_id)
