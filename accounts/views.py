@@ -364,3 +364,23 @@ class CompleteProfile(APIView):
                 'msg': "Somthing went wrong!",
                 'error': str(e)
             }, status=status.HTTP_400_BAD_REQUEST)
+
+class GetUserProfile(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        try:
+            user = request.user
+            user_profile = {
+                'id': user.id,
+                'email': user.email,
+                'name': user.get_full_name(),
+                'is_profile_complete': user.is_profile_complete,
+            }
+            return Response(user_profile, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({
+                'msg': "Somthing went wrong!",
+                'error': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)

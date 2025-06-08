@@ -24,6 +24,10 @@ egthreads/__pycache__/*
 egthreads/migrations/*
 media_root/
 media_root/*
+env
+venv
+env/*
+venv/*
 media_root/qr_codes/*
 .env
 *.pyc
