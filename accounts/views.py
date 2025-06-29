@@ -200,7 +200,9 @@ class CustomTokenRefreshView(TokenRefreshView):
         return response
 
 
-class CustomTokenVerifyView(TokenVerifyView):
+class CustomTokenVerifyView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
     def post(self, request, *args, **kwargs):
         access = request.COOKIES.get('access')
         if access:
@@ -373,8 +375,7 @@ class GetUserProfile(APIView):
             user = request.user
             user_profile = {
                 'id': user.id,
-                'email': user.email,
-                'name': user.get_full_name(),
+                'full_name': user.get_full_name(),
                 'is_profile_complete': user.is_profile_complete,
             }
             return Response(user_profile, status=status.HTTP_200_OK)
