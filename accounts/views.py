@@ -216,15 +216,11 @@ class LogoutView(APIView):
         response = Response(status=status.HTTP_204_NO_CONTENT)
         response.delete_cookie(
             'access',
-            path='/',
             samesite='None',
-            secure=True,
         )
         response.delete_cookie(
             'refresh',
-            path='/',
             samesite='None',
-            secure=True,
         )
         return response
 
