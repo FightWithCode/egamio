@@ -200,7 +200,9 @@ class CustomTokenRefreshView(TokenRefreshView):
         return response
 
 
-class CustomTokenVerifyView(TokenVerifyView):
+class CustomTokenVerifyView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
     def post(self, request, *args, **kwargs):
         access = request.COOKIES.get('access')
         if access:
@@ -212,8 +214,14 @@ class CustomTokenVerifyView(TokenVerifyView):
 class LogoutView(APIView):
     def post(self, request, *args, **kwargs):
         response = Response(status=status.HTTP_204_NO_CONTENT)
-        response.delete_cookie('access')
-        response.delete_cookie('refresh')
+        response.delete_cookie(
+            'access',
+            samesite='None',
+        )
+        response.delete_cookie(
+            'refresh',
+            samesite='None',
+        )
         return response
 
 
@@ -358,6 +366,25 @@ class CompleteProfile(APIView):
             return Response({
                 "msg": f"{profile_type.capitalize()} profile completed successfully"
             }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({
+                'msg': "Somthing went wrong!",
+                'error': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+class GetUserProfile(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        try:
+            user = request.user
+            user_profile = {
+                'id': user.id,
+                'full_name': user.get_full_name(),
+                'is_profile_complete': user.is_profile_complete,
+            }
+            return Response(user_profile, status=status.HTTP_200_OK)
 
         except Exception as e:
             return Response({

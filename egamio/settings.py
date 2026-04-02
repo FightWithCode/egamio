@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # external apps
     "rest_framework",
+    "drf_yasg",
     "rest_framework_simplejwt",
     "django.contrib.sites",
     "allauth",

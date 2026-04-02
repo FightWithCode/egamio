@@ -1,4 +1,6 @@
 from datetime import timedelta
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from django.db.models import F
 from django.shortcuts import get_object_or_404
 from django.db.models import Count
@@ -13,7 +15,6 @@ from rest_framework import generics
 from .models import Thread, Comment
 from .serializers import ThreadSerializer, CommentSerializer, ThreadDetailSerializer, RecursiveCommentSerializer, ReplySerializer, ThreadCreateSerializer
 from .permissions import IsAuthorOrReadOnly
-
 
 class ThreadViewSet(viewsets.ModelViewSet):
     queryset = Thread.objects.all()
@@ -236,20 +237,30 @@ class ListThreadView(APIView):
 
             # Time window configuration
             time_window = int(request.query_params.get('days', 30))
-            start_date = timezone.now() - timedelta(days=time_window)
             
-            # Query with optimization and annotations
-            threads = Thread.objects.select_related('author', 'game')\
-                .filter(
-                    created_at__gte=start_date,
-                    is_deleted=False
-                )\
-                .annotate(
-                    like_count=Count('likes'),
-                    comment_count=Count('comments'),
-                    engagement_score=F('views') + (F('like_count') * 2) + (F('comment_count') * 3)
-                )\
-                .order_by('-engagement_score', '-views', '-created_at')
+            # If no time_window is provided, include all threads
+            if time_window == 0:
+                threads = Thread.objects.select_related('author', 'game')\
+                    .filter(is_deleted=False)\
+                    .annotate(
+                        like_count=Count('likes'),
+                        comment_count=Count('comments'),
+                        engagement_score=F('views') + (F('like_count') * 2) + (F('comment_count') * 3)
+                    )\
+                    .order_by('-engagement_score', '-views', '-created_at')
+            else:
+                start_date = timezone.now() - timedelta(days=time_window)
+                threads = Thread.objects.select_related('author', 'game')\
+                    .filter(
+                        created_at__gte=start_date,
+                        is_deleted=False
+                    )\
+                    .annotate(
+                        like_count=Count('likes'),
+                        comment_count=Count('comments'),
+                        engagement_score=F('views') + (F('like_count') * 2) + (F('comment_count') * 3)
+                    )\
+                    .order_by('-engagement_score', '-views', '-created_at')
 
             # Pagination
             start_idx = (int(page) - 1) * int(per_page)
@@ -341,7 +352,15 @@ class DislikeThread(APIView):
 
 class CreateCommentView(APIView):
     permission_classes = [IsAuthenticated]
+    content_schema = openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'content': openapi.Schema(type=openapi.TYPE_STRING, description='Content of the comment', max_length=500),
+        },
+        required=['content'],
+    )
 
+    @swagger_auto_schema(request_body=content_schema)
     def post(self, request, thread_id):
         thread = get_object_or_404(Thread, thread_id=thread_id)
         content = request.data.get('content')

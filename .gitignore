@@ -8,7 +8,12 @@ node_modules/
 dist/
 accounts/migrations/*
 accounts/__pycache__/*
+egthreads/migrations/*
+egthreads/migrations/*
+/__pycache__/*
 finder/migrations/*
+finder/migrations/__init__.py
+finder/migrations/0001_initial.py
 finder/__pycache__/*
 games/migrations/*
 games/__pycache__/*
@@ -19,6 +24,10 @@ egthreads/__pycache__/*
 egthreads/migrations/*
 media_root/
 media_root/*
+env
+venv
+env/*
+venv/*
 media_root/qr_codes/*
 .env
 *.pyc
