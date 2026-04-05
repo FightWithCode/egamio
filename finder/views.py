@@ -6,7 +6,13 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from .models import RecruitmentPost, RecruitmentApplication, TeamInvitation
-from .serializers import RecruitmentPostSerializer, RecruitmentApplicationSerializer, TeamInvitationSerializer, RecruitmentPostCreateSerializer
+from .serializers import (
+    RecruitmentPostSerializer,
+    RecruitmentApplicationSerializer,
+    TeamInvitationSerializer,
+    RecruitmentPostCreateSerializer,
+    TeamSearchSerializer,
+)
 from accounts.models import UserGameProfile, Team
 from accounts.serializers import UserGameProfileSerializer
 
@@ -96,11 +102,11 @@ class PlayerSearchAPIView(generics.ListAPIView):
         return queryset
 
 class TeamSearchAPIView(generics.ListAPIView):
-    serializer_class = RecruitmentPostSerializer
+    serializer_class = TeamSearchSerializer
     pagination_class = PlayerSearchPagination
     
     def get_queryset(self):
-        queryset = RecruitmentPost.objects.select_related('team', 'team__game', 'created_by').all().order_by('-id')
+        queryset = Team.objects.select_related('game').prefetch_related('recruitment_posts__roles').all().order_by('-id')
         
         # Get query parameters
         team_name = self.request.query_params.get('team_name', None)
@@ -110,17 +116,17 @@ class TeamSearchAPIView(generics.ListAPIView):
 
         filters = Q()
         if team_name:
-            filters &= Q(team__name__icontains=team_name)
+            filters &= Q(name__icontains=team_name)
         
         if location:
-            filters &= Q(team__location__icontains=location)
+            filters &= Q(location__icontains=location)
         
         if game_name:
-            filters &= Q(team__game__name__icontains=game_name)
+            filters &= Q(game__name__icontains=game_name)
         
         if roles:
             roles_list = roles.split(',')
-            filters &= Q(roles__name__in=roles_list)
+            filters &= Q(recruitment_posts__roles__name__in=roles_list)
 
         if filters:
             queryset = queryset.filter(filters).distinct()

@@ -1,4 +1,3 @@
-import os
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from django.contrib.auth import get_user_model
@@ -55,7 +54,12 @@ class UserSignupView(APIView):
             verification_token = EmailVerificationToken.objects.create(user=user)
 
             # Send verification email
-            self._send_verification_email(user, verification_token)
+            try:
+                self._send_verification_email(user, verification_token)
+            except Exception:
+                verification_token.delete()
+                user.delete()
+                raise
 
             return Response({
                 'msg': 'User created successfully. Please check your email for verification.',
@@ -87,7 +91,7 @@ class UserSignupView(APIView):
         send_mail(
             subject=subject,
             message='',
-            from_email=os.getenv('EMAIL_FROM'),
+            from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email],
             html_message=html_message,
             fail_silently=False,
