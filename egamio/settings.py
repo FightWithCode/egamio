@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_yasg",
     "rest_framework_simplejwt",
+    "channels",
     "django.contrib.sites",
     "allauth",
     "allauth.account",
@@ -55,7 +56,8 @@ INSTALLED_APPS = [
     "accounts",
     "games",
     "finder",
-    "egthreads"
+    "egthreads",
+    "chat",
 ]
 
 SITE_ID = 1
@@ -91,6 +93,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "egamio.wsgi.application"
+ASGI_APPLICATION = "egamio.asgi.application"
 
 
 # Database
@@ -158,6 +161,12 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [
     STATICFILES,
 ]
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    }
+}
 
 STATIC_ROOT = os.path.join(BASE_DIR, "static_root")
 

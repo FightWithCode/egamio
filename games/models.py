@@ -23,3 +23,23 @@ class Game(models.Model, TimeStamp):
 
     def __str__(self):
         return self.name
+
+
+class GameTag(models.Model):
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='thread_tags')
+    name = models.CharField(_("tag name"), max_length=50)
+    usage_count = models.PositiveIntegerField(default=0)
+    is_featured = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-usage_count', 'name']
+        unique_together = ('game', 'name')
+        indexes = [
+            models.Index(fields=['game', 'name']),
+            models.Index(fields=['game', 'usage_count']),
+        ]
+
+    def __str__(self):
+        return f'{self.game.name}: {self.name}'

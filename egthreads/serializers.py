@@ -1,7 +1,8 @@
-from django.contrib.auth import get_user_model
+from django.db.models import F
 from rest_framework import serializers
 from accounts.serializers import UserMinimalSerializer
 from .models import Thread, Comment
+from games.models import GameTag
 
 class CommentSerializer(serializers.ModelSerializer):
     author = UserMinimalSerializer(read_only=True)
@@ -44,7 +45,17 @@ class ThreadCreateSerializer(serializers.ModelSerializer):
             author=user,
             **validated_data
         )
+        raw_keywords = (thread.meta_keywords or '').strip()
+        if raw_keywords:
+            keywords = [kw.strip() for kw in raw_keywords.split(',') if kw.strip()]
+            for keyword in keywords:
+                existing_qs = GameTag.objects.filter(game=thread.game, name__iexact=keyword)
+                if existing_qs.exists():
+                    existing_qs.update(usage_count=F('usage_count') + 1)
+                else:
+                    GameTag.objects.create(game=thread.game, name=keyword, usage_count=1)
         return thread
+
 
 class ThreadSerializer(serializers.ModelSerializer):
 
@@ -77,6 +88,7 @@ class RecursiveCommentSerializer(serializers.ModelSerializer):
     replies = serializers.SerializerMethodField()
     author = UserMinimalSerializer(read_only=True)
     likes_count = serializers.SerializerMethodField()
+    dislikes_count = serializers.SerializerMethodField()
     is_liked_by_user = serializers.SerializerMethodField()
     is_disliked_by_user = serializers.SerializerMethodField()
 
@@ -84,7 +96,7 @@ class RecursiveCommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = [
             'id', 'content', 'author', 'created_at', 
-            'updated_at', 'likes_count', 'is_liked_by_user', 
+            'updated_at', 'likes_count', 'dislikes_count', 'is_liked_by_user', 
             'replies', 'is_disliked_by_user'
         ]
 
@@ -95,6 +107,9 @@ class RecursiveCommentSerializer(serializers.ModelSerializer):
 
     def get_likes_count(self, obj):
         return obj.likes.count()
+
+    def get_dislikes_count(self, obj):
+        return obj.dislikes.count()
 
     def get_is_liked_by_user(self, obj):
         request = self.context.get('request')
@@ -142,6 +157,7 @@ class ThreadMinimalSerializer(serializers.ModelSerializer):
 
 class ThreadDetailSerializer(serializers.ModelSerializer):
     likes_count = serializers.SerializerMethodField()
+    dislikes_count = serializers.SerializerMethodField()
     related_posts = serializers.SerializerMethodField()
     time_since_posted = serializers.SerializerMethodField()
 
@@ -149,7 +165,7 @@ class ThreadDetailSerializer(serializers.ModelSerializer):
         model = Thread
         fields = [
             'id', 'title', 'slug', 'content', 'author',
-            'created_at', 'updated_at', 'likes_count', 'views',
+            'created_at', 'updated_at', 'likes_count', 'dislikes_count', 'views',
             'time_since_posted', 'meta_description',
             'meta_keywords', 'is_featured', 'related_posts', 'thread_id'
         ]
@@ -157,6 +173,9 @@ class ThreadDetailSerializer(serializers.ModelSerializer):
 
     def get_likes_count(self, obj):
         return obj.likes.count()
+
+    def get_dislikes_count(self, obj):
+        return obj.dislikes.count()
 
     def get_time_since_posted(self, obj):
         from django.utils import timezone
@@ -184,4 +203,3 @@ class ThreadDetailSerializer(serializers.ModelSerializer):
         # Serialize related threads
         serializer = ThreadMinimalSerializer(related_threads, many=True, context=self.context)
         return serializer.data
-

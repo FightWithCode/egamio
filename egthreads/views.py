@@ -2,10 +2,9 @@ from datetime import timedelta
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from django.db.models import F
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.db.models import Count
 from django.utils import timezone
-from django.conf import settings
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -13,8 +12,23 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import generics
 from .models import Thread, Comment
+from accounts.models import UserGameProfile
 from .serializers import ThreadSerializer, CommentSerializer, ThreadDetailSerializer, RecursiveCommentSerializer, ReplySerializer, ThreadCreateSerializer
 from .permissions import IsAuthorOrReadOnly
+
+
+def calculate_hype(thread):
+    from math import log1p
+
+    # Combine likes, comments, and views into a popularity signal.
+    popularity = (thread.like_count * 2) + (thread.comment_count * 3) + (thread.views / 50)
+
+    # Recency fades over 4 days with a floor to keep older threads from going to zero.
+    age_hours = max(1, (timezone.now() - thread.created_at).total_seconds() / 3600)
+    recency = max(0.2, 1 - (age_hours / 96))
+
+    score = log1p(popularity) * 3 * recency
+    return min(10, round(score, 1))
 
 class ThreadViewSet(viewsets.ModelViewSet):
     queryset = Thread.objects.all()
@@ -75,6 +89,8 @@ class CreateThread(APIView):
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
 
+def thread_create_page(request):
+    return render(request, 'egthreads/create.html')
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
@@ -282,10 +298,14 @@ class ListThreadView(APIView):
                     'author': {
                         'id': thread.author.id,
                         'name': thread.author.name,
+                        'ign': UserGameProfile.objects.filter(user=thread.author, game=thread.game)
+                        .values_list('ign', flat=True)
+                        .first(),
                         'avatar': thread.author.avatar_url if hasattr(thread.author, 'avatar_url') else None
                     },
                     # 'tags': [{'id': tag.id, 'name': tag.name} for tag in thread.meta_keywords.all()],
-                    'is_trending': thread.engagement_score > 200
+                    'is_trending': thread.engagement_score > 200,
+                    'hype_score': calculate_hype(thread)
                 } for thread in paginated_threads],
                 'meta': {
                     'total_count': threads.count(),
@@ -303,6 +323,50 @@ class ListThreadView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+
+class MyThreadsList(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            threads = Thread.objects.select_related('author', 'game')\
+                .filter(is_deleted=False, author=request.user)\
+                .annotate(
+                    like_count=Count('likes'),
+                    comment_count=Count('comments'),
+                    engagement_score=F('views') + (F('like_count') * 2) + (F('comment_count') * 3)
+                )\
+                .order_by('-created_at')
+
+            data = [{
+                'thread_id': thread.thread_id,
+                'title': thread.title,
+                'slug': thread.slug,
+                'views': thread.views,
+                'like_count': thread.like_count,
+                'comment_count': thread.comment_count,
+                'engagement_score': thread.engagement_score,
+                'created_at': thread.created_at,
+                'game': thread.game.name,
+                'short_content': thread.content,
+                'author': {
+                    'id': thread.author.id,
+                    'name': thread.author.name,
+                    'ign': UserGameProfile.objects.filter(user=thread.author, game=thread.game)
+                    .values_list('ign', flat=True)
+                    .first(),
+                    'avatar': thread.author.avatar_url if hasattr(thread.author, 'avatar_url') else None
+                },
+                'is_trending': thread.engagement_score > 200,
+                'hype_score': calculate_hype(thread)
+            } for thread in threads]
+
+            return Response({'msg': 'fetched', 'data': data}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(
+                {'error': 'Failed to fetch your threads', 'detail': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
 class LikeThread(APIView):
     permission_classes = [IsAuthenticated]
@@ -450,4 +514,3 @@ class DislikeCommentView(APIView):
             if user in comment.likes.all():
                 comment.likes.remove(user)  # Remove like if the user disliked the comment
             return Response({'status': 'disliked'}, status=status.HTTP_200_OK)
-

@@ -3,19 +3,17 @@ from google.auth.transport import requests
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.core.mail import send_mail
-from django.conf import settings
 from django.template.loader import render_to_string
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.views import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import permission_classes
 from rest_framework import permissions
-from .models import UserGameProfile, Team, Role, EmailVerificationToken
+from .models import UserGameProfile, Team, Role, EmailVerificationToken, UserShort
 from games.models import Game
-from .serializers import CustomTokenObtainPairSerializer
+from .serializers import CustomTokenObtainPairSerializer, UserShortSerializer
 
 
 User = get_user_model()
@@ -394,4 +392,20 @@ class GetUserProfile(APIView):
             return Response({
                 'msg': "Somthing went wrong!",
                 'error': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MyClipsList(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        try:
+            clips = UserShort.objects.filter(user=request.user).order_by('-created_at')
+            serializer = UserShortSerializer(clips, many=True, context={'request': request})
+            return Response({'msg': 'fetched', 'data': serializer.data}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({
+                'msg': "Somthing went wrong!",
+                'error': str(e),
+                'data': []
             }, status=status.HTTP_400_BAD_REQUEST)

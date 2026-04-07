@@ -1,10 +1,10 @@
-from typing import Any, Dict, Optional, Type, TypeVar
+from typing import Any, Dict
 from django.contrib.auth.models import update_last_login
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 from rest_framework_simplejwt.settings import api_settings
-from accounts.models import Role, Team, UserGameProfile
+from accounts.models import Role, Team, UserGameProfile, UserShort
 from games.models import Game
 User = get_user_model()
 
@@ -91,3 +91,9 @@ class UserMinimalSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'name', 'location']
+
+
+class UserShortSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserShort
+        fields = ['uuid', 'title', 'description', 'video', 'created_at']
