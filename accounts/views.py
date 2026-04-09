@@ -8,12 +8,16 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.views import Response
 from rest_framework import status
 from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import permission_classes
 from rest_framework import permissions
 from .models import UserGameProfile, Team, Role, EmailVerificationToken, UserShort
 from games.models import Game
-from .serializers import CustomTokenObtainPairSerializer, UserShortSerializer
+from .serializers import CustomTokenObtainPairSerializer, UserShortSerializer, UserGameProfileSerializer, TeamProfileSerializer
 
 
 User = get_user_model()
@@ -337,6 +341,7 @@ class CompleteProfile(APIView):
             ign = request.data.get('ign', None)
             game_data = request.data.get('game_data', {})
             preference_data = request.data.get('preference_data', {})
+            looking_for_team = request.data.get('looking_for_team', False)
             
             ugp = UserGameProfile.objects.create(
                 user=request.user,
@@ -344,6 +349,7 @@ class CompleteProfile(APIView):
                 game=game,
                 game_data=game_data,
                 preference_data=preference_data,
+                looking_for_team=looking_for_team,
             )
             ugp.roles.set(roles)
 
@@ -360,6 +366,8 @@ class CompleteProfile(APIView):
                     location=request.data.get('location', ''),
                     looking_for_players=looking_for_players,
                 )
+                if roles.exists():
+                    team.roles_needed.set(roles)
                 team.save()
 
             request.user.is_profile_complete = True
@@ -385,6 +393,8 @@ class GetUserProfile(APIView):
                 'id': user.id,
                 'full_name': user.get_full_name(),
                 'is_profile_complete': user.is_profile_complete,
+                'email': user.email,
+                'location': user.location,
             }
             return Response(user_profile, status=status.HTTP_200_OK)
 
@@ -409,3 +419,206 @@ class MyClipsList(APIView):
                 'error': str(e),
                 'data': []
             }, status=status.HTTP_400_BAD_REQUEST)
+
+
+def _parse_bool(value):
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return None
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "on"}
+    return bool(value)
+
+
+def _parse_roles(value):
+    if value is None:
+        return []
+    if isinstance(value, (list, tuple)):
+        return [int(item) for item in value if str(item).isdigit()]
+    if isinstance(value, str):
+        return [int(item) for item in value.split(",") if item.strip().isdigit()]
+    return []
+
+
+class PlayerProfileDetail(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get(self, request):
+        profile = UserGameProfile.objects.filter(user=request.user).select_related('game', 'user').prefetch_related('roles').first()
+        if not profile:
+            return Response({"msg": "Profile not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = UserGameProfileSerializer(profile, context={'request': request})
+        return Response({
+            "msg": "fetched",
+            "user": {
+                "id": request.user.id,
+                "name": request.user.name,
+                "email": request.user.email,
+                "location": request.user.location,
+            },
+            "profile": serializer.data,
+        }, status=status.HTTP_200_OK)
+
+    def patch(self, request):
+        profile = UserGameProfile.objects.filter(user=request.user).select_related('game', 'user').prefetch_related('roles').first()
+        if not profile:
+            return Response({"msg": "Profile not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        name = request.data.get("name")
+        location = request.data.get("location")
+        if name is not None:
+            request.user.name = name
+        if location is not None:
+            request.user.location = location
+        if name is not None or location is not None:
+            request.user.save(update_fields=["name", "location"])
+
+        ign = request.data.get("ign")
+        experience = request.data.get("experience")
+        looking_for_team = _parse_bool(request.data.get("looking_for_team"))
+        game_id = request.data.get("game_id") or request.data.get("game")
+
+        if ign is not None:
+            profile.ign = ign
+        if experience is not None and str(experience).isdigit():
+            profile.experience = int(experience)
+        if looking_for_team is not None:
+            profile.looking_for_team = looking_for_team
+        if game_id and str(game_id).isdigit():
+            profile.game = Game.objects.get(id=int(game_id))
+
+        if "featured_image" in request.FILES:
+            profile.featured_image = request.FILES["featured_image"]
+
+        if "roles" in request.data:
+            roles = _parse_roles(request.data.get("roles"))
+            profile.roles.set(Role.objects.filter(id__in=roles))
+        profile.save()
+
+        serializer = UserGameProfileSerializer(profile, context={'request': request})
+        return Response({"msg": "updated", "profile": serializer.data}, status=status.HTTP_200_OK)
+
+
+class TeamProfileDetail(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get(self, request):
+        team = Team.objects.filter(created_by=request.user).select_related('game').prefetch_related('roles_needed').first()
+        if not team:
+            return Response({"msg": "fetched", "team": None}, status=status.HTTP_200_OK)
+
+        serializer = TeamProfileSerializer(team, context={'request': request})
+        return Response({"msg": "fetched", "team": serializer.data}, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        existing = Team.objects.filter(created_by=request.user).first()
+        if existing:
+            return Response({"msg": "Team already exists"}, status=status.HTTP_400_BAD_REQUEST)
+
+        name = request.data.get("name")
+        if not name:
+            return Response({"msg": "Team name is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        game_id = request.data.get("game_id") or request.data.get("game")
+        game = Game.objects.get(id=int(game_id)) if game_id and str(game_id).isdigit() else None
+
+        team = Team.objects.create(
+            name=name,
+            created_by=request.user,
+            description=request.data.get("description", ""),
+            game=game,
+            location=request.data.get("location", ""),
+            looking_for_players=_parse_bool(request.data.get("looking_for_players")) or False,
+            logo=request.FILES.get("logo"),
+        )
+
+        if "roles_needed" in request.data:
+            roles = _parse_roles(request.data.get("roles_needed"))
+            team.roles_needed.set(Role.objects.filter(id__in=roles))
+
+        serializer = TeamProfileSerializer(team, context={'request': request})
+        return Response({"msg": "created", "team": serializer.data}, status=status.HTTP_201_CREATED)
+
+    def patch(self, request):
+        team = Team.objects.filter(created_by=request.user).select_related('game').prefetch_related('roles_needed').first()
+        if not team:
+            return Response({"msg": "Team not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        name = request.data.get("name")
+        if name is not None:
+            team.name = name
+        description = request.data.get("description")
+        if description is not None:
+            team.description = description
+        location = request.data.get("location")
+        if location is not None:
+            team.location = location
+        looking_for_players = _parse_bool(request.data.get("looking_for_players"))
+        if looking_for_players is not None:
+            team.looking_for_players = looking_for_players
+        game_id = request.data.get("game_id") or request.data.get("game")
+        if game_id and str(game_id).isdigit():
+            team.game = Game.objects.get(id=int(game_id))
+        if "logo" in request.FILES:
+            team.logo = request.FILES["logo"]
+
+        roles = _parse_roles(request.data.get("roles_needed"))
+        if roles:
+            team.roles_needed.set(Role.objects.filter(id__in=roles))
+
+        team.save()
+        serializer = TeamProfileSerializer(team, context={'request': request})
+        return Response({"msg": "updated", "team": serializer.data}, status=status.HTTP_200_OK)
+
+
+class PasswordResetRequest(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        email = request.data.get("email")
+        if not email:
+            return Response({"msg": "Email is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.filter(email=email).first()
+        if user:
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+            reset_url = f"{settings.FRONTEND_URL}/reset-password?uid={uid}&token={token}"
+            send_mail(
+                "Reset your password",
+                f"Use the link to reset your password: {reset_url}",
+                settings.DEFAULT_FROM_EMAIL,
+                [email],
+                fail_silently=True,
+            )
+
+        return Response({"msg": "If the account exists, a reset link has been sent."}, status=status.HTTP_200_OK)
+
+
+class PasswordResetConfirm(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        uid = request.data.get("uid")
+        token = request.data.get("token")
+        new_password = request.data.get("new_password")
+
+        if not uid or not token or not new_password:
+            return Response({"msg": "uid, token, and new_password are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user_id = force_str(urlsafe_base64_decode(uid))
+            user = User.objects.get(pk=user_id)
+        except Exception:
+            return Response({"msg": "Invalid reset link"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not default_token_generator.check_token(user, token):
+            return Response({"msg": "Invalid or expired token"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.save()
+        return Response({"msg": "Password updated successfully"}, status=status.HTTP_200_OK)

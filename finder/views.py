@@ -4,64 +4,21 @@ from django.db.models import Q
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
-from .models import RecruitmentPost, RecruitmentApplication, TeamInvitation
-from .serializers import (
-    RecruitmentApplicationSerializer,
-    TeamInvitationSerializer,
-    RecruitmentPostCreateSerializer,
-    TeamSearchSerializer,
-)
+from rest_framework.views import APIView
+from .serializers import TeamSearchSerializer
 from accounts.models import UserGameProfile, Team
 from accounts.serializers import UserGameProfileSerializer
 
 
 
-class RecruitmentPostListCreateView(generics.ListCreateAPIView):
-    queryset = RecruitmentPost.objects.all()
-    serializer_class = RecruitmentPostCreateSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
-
-class RecruitmentApplicationListCreateView(generics.ListCreateAPIView):
-    queryset = RecruitmentApplication.objects.all()
-    serializer_class = RecruitmentApplicationSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def perform_create(self, serializer):
-        serializer.save(applicant=self.request.user)
-
-
-class TeamInvitationListCreateView(generics.ListCreateAPIView):
-    queryset = TeamInvitation.objects.all()
-    serializer_class = TeamInvitationSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def perform_create(self, serializer):
-        serializer.save()
-
-class RecruitmentApplicationUpdateView(generics.UpdateAPIView):
-    queryset = RecruitmentApplication.objects.all()
-    serializer_class = RecruitmentApplicationSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def update(self, request, *args, **kwargs):
-        application = self.get_object()
-        if application.recruitment_post.created_by != request.user:
-            return Response({"error": "Not authorized to update this application."}, status=status.HTTP_403_FORBIDDEN)
-        return super().update(request, *args, **kwargs)
-
-class TeamInvitationUpdateView(generics.UpdateAPIView):
-    queryset = TeamInvitation.objects.all()
-    serializer_class = TeamInvitationSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def update(self, request, *args, **kwargs):
-        invitation = self.get_object()
-        if invitation.team.created_by != request.user:
-            return Response({"error": "Not authorized to update this invitation."}, status=status.HTTP_403_FORBIDDEN)
-        return super().update(request, *args, **kwargs)
+def _parse_bool(value):
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return None
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "on"}
+    return bool(value)
 
 
 class PlayerSearchPagination(PageNumberPagination):
@@ -79,6 +36,7 @@ class PlayerSearchAPIView(generics.ListAPIView):
         role = self.request.query_params.get('role', None)
         ign = self.request.query_params.get('ign', None)
         game_data = self.request.query_params.get('game_data', None)
+        looking_for = _parse_bool(self.request.query_params.get('looking_for', None))
 
         filters = Q()
         if game:
@@ -87,6 +45,8 @@ class PlayerSearchAPIView(generics.ListAPIView):
             filters &= Q(roles__name__iexact=role)
         if ign:
             filters &= Q(ign__icontains=ign)
+        if looking_for is True:
+            filters &= Q(looking_for_team=True)
         if game_data:
             try:
                 game_data_dict = json.loads(game_data)
@@ -104,13 +64,14 @@ class TeamSearchAPIView(generics.ListAPIView):
     pagination_class = PlayerSearchPagination
     
     def get_queryset(self):
-        queryset = Team.objects.select_related('game').prefetch_related('recruitment_posts__roles').all().order_by('-id')
+        queryset = Team.objects.select_related('game', 'created_by').prefetch_related('roles_needed').all().order_by('-id')
         
         # Get query parameters
         team_name = self.request.query_params.get('team_name', None)
         location = self.request.query_params.get('location', None)
         game_name = self.request.query_params.get('game_name', None)
         roles = self.request.query_params.get('roles', None)
+        looking_for = _parse_bool(self.request.query_params.get('looking_for', None))
 
         filters = Q()
         if team_name:
@@ -123,9 +84,47 @@ class TeamSearchAPIView(generics.ListAPIView):
             filters &= Q(game__name__icontains=game_name)
         
         if roles:
-            roles_list = roles.split(',')
-            filters &= Q(recruitment_posts__roles__name__in=roles_list)
+            roles_list = [role.strip() for role in roles.split(',') if role.strip()]
+            if roles_list:
+                filters &= Q(roles_needed__name__in=roles_list)
+
+        if looking_for is True:
+            filters &= Q(looking_for_players=True)
 
         if filters:
             queryset = queryset.filter(filters).distinct()
         return queryset
+
+
+class UpdatePlayerAvailability(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def patch(self, request):
+        looking_for_team = _parse_bool(request.data.get("looking_for_team"))
+        if looking_for_team is None:
+            return Response({"msg": "looking_for_team is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        profile = UserGameProfile.objects.filter(user=request.user).first()
+        if not profile:
+            return Response({"msg": "Player profile not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        profile.looking_for_team = looking_for_team
+        profile.save(update_fields=["looking_for_team"])
+        return Response({"msg": "updated", "looking_for_team": profile.looking_for_team}, status=status.HTTP_200_OK)
+
+
+class UpdateTeamAvailability(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def patch(self, request):
+        looking_for_players = _parse_bool(request.data.get("looking_for_players"))
+        if looking_for_players is None:
+            return Response({"msg": "looking_for_players is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        team = Team.objects.filter(created_by=request.user).first()
+        if not team:
+            return Response({"msg": "Team not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        team.looking_for_players = looking_for_players
+        team.save(update_fields=["looking_for_players"])
+        return Response({"msg": "updated", "looking_for_players": team.looking_for_players}, status=status.HTTP_200_OK)

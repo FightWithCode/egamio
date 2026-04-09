@@ -122,6 +122,11 @@ class Team(models.Model, TimeStamp):
     )
     location = models.CharField(max_length=255, blank=True, null=True)
     looking_for_players = models.BooleanField(default=False)
+    roles_needed = models.ManyToManyField(
+        Role,
+        related_name="teams_needed",
+        blank=True,
+    )
 
     class Meta:
         verbose_name = _("team")
@@ -139,6 +144,7 @@ class UserGameProfile(models.Model, TimeStamp):
     roles = models.ManyToManyField(Role, related_name='game_roles', blank=True)
     featured_image = models.ImageField(_("featured_image"), upload_to='user_game_profile/', blank=True, null=True)
     experience = models.IntegerField(default=1)
+    looking_for_team = models.BooleanField(default=False)
     game_data = models.JSONField(default=get_json_default)
     preference_data = models.JSONField(default=get_json_default)
 

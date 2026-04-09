@@ -66,16 +66,47 @@ class PlayerSignupSerializer(serializers.ModelSerializer):
 
 
 class UserGameProfileSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(source='user.id', read_only=True)
     user_name = serializers.CharField(source='user.name', read_only=True)
+    location = serializers.CharField(source='user.location', read_only=True)
     game_name = serializers.CharField(source='game.name', read_only=True)
+    game_id = serializers.IntegerField(source='game.id', read_only=True)
     roles_list = serializers.SerializerMethodField()
+    roles = serializers.SerializerMethodField()
+    featured_image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = UserGameProfile
-        fields = ['uuid', 'user_name', 'ign', 'game_name', 'roles_list', 'featured_image', 'experience']
+        fields = [
+            'uuid',
+            'user_id',
+            'user_name',
+            'ign',
+            'game_id',
+            'game_name',
+            'roles_list',
+            'roles',
+            'featured_image',
+            'featured_image_url',
+            'experience',
+            'location',
+            'looking_for_team',
+        ]
 
     def get_roles_list(self, obj):
         return [role.name for role in obj.roles.all()]
+
+    def get_roles(self, obj):
+        return [role.id for role in obj.roles.all()]
+
+    def get_featured_image_url(self, obj):
+        if not obj.featured_image:
+            return None
+        request = self.context.get('request')
+        url = obj.featured_image.url
+        if request:
+            return request.build_absolute_uri(url)
+        return url
 
 
 class TeamSerializer(serializers.ModelSerializer):
@@ -85,6 +116,34 @@ class TeamSerializer(serializers.ModelSerializer):
         model = Team
         fields = ['id', 'name', 'description', 'logo', 'game_name', 
                  'location', 'looking_for_players']
+
+
+class TeamProfileSerializer(serializers.ModelSerializer):
+    game_name = serializers.CharField(source='game.name', read_only=True)
+    game_id = serializers.IntegerField(source='game.id', read_only=True)
+    roles_needed = serializers.SerializerMethodField()
+    roles_needed_ids = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Team
+        fields = [
+            'id',
+            'name',
+            'description',
+            'logo',
+            'game_id',
+            'game_name',
+            'location',
+            'looking_for_players',
+            'roles_needed',
+            'roles_needed_ids',
+        ]
+
+    def get_roles_needed(self, obj):
+        return [role.name for role in obj.roles_needed.all()]
+
+    def get_roles_needed_ids(self, obj):
+        return [role.id for role in obj.roles_needed.all()]
 
 
 class UserMinimalSerializer(serializers.ModelSerializer):
